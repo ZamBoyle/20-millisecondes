@@ -1,9 +1,9 @@
 ;---------------------------------------------------------------
 ; 20 MILLISECONDES — chapitre 8 : ouvrir la bordure du bas
 ;
-; La bordure n'est pas une zone : c'est un robinet, ouvert par
-; UNE comparaison exacte. On change la valeur comparee juste
-; avant qu'elle ne tombe juste -> le robinet ne s'ouvre jamais.
+; La meme ouverture de bordure que « sansbord », mais avec
+; l'octet fantome ($3fff) mis a $ff exprès : les zones ouvertes
+; revelent alors ce que le VIC y lit vraiment.
 ;
 ; Assembler :   acme fantome.a
 ; Lancer :      LOAD"FANTOME",8,1  puis  RUN

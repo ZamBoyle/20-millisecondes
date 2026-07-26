@@ -1,9 +1,9 @@
 ;---------------------------------------------------------------
 ; 20 MILLISECONDES — chapitre 9 : FLI, toutes les couleurs
 ;
-; On PROVOQUE une Bad Line a chaque ligne raster : le VIC relit
-; ses couleurs 200 fois par image au lieu de 25. Et le gel du
-; processeur, notre voleur du chapitre 4, devient notre metronome.
+; LA TENTATIVE RATEE du chapitre 9, gardee exprès : une boucle a
+; COMPTEUR, juste au cycle pres, qui casse quand meme apres 48
+; lignes. C'est l'hypothese « un tour = une ligne » qui est fausse.
 ;
 ; Assembler :   acme flirate.a
 ; Lancer :      LOAD"FLIRATE",8,1  puis  RUN
