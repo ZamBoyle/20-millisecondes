@@ -92,6 +92,10 @@ existent : **redessiner** les diagrammes à partir de nos propres mesures, ou **
 l'autorisation** aux auteurs — ils sont joignables, et l'esprit de cette communauté est
 généreux.
 
+Les cinq courriels de demande sont prêts, en anglais, dans
+[`autorisations/`](autorisations/) : un par auteur, chacun disant précisément ce qui est
+repris chez lui et combien de mots.
+
 ### « Mais c'est vieux, non ? » — l'âge ne change rien
 
 C'est le contresens le plus répandu, et il vaut la peine d'être levé : **ce n'est pas l'âge du
