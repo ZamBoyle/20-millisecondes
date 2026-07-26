@@ -213,4 +213,26 @@ détail de ces passes, et les corrections qui en sont sorties, est dans
 
 ---
 
+## Licence, et le café
+
+Le livre — texte, PDF et **toutes les captures d'écran** — est sous
+**[Creative Commons BY-SA 4.0](LICENSE.md)** : partagez-le, adaptez-le, même
+commercialement, à condition de citer la source et de partager aux mêmes conditions.
+
+Les **programmes et les outils** sont sous **licence MIT**, volontairement plus permissive :
+un lecteur doit pouvoir reprendre un listing du livre dans son propre code sans que cela
+l'engage à quoi que ce soit.
+
+⚠️ Le dossier [`reference/`](reference/) fait exception : il contient des documents de tiers
+(dont certains « tous droits réservés ») conservés comme copie de travail. **Il ne doit pas
+être redistribué** — voir [LICENSE.md](LICENSE.md), qui explique aussi comment le remplacer
+par la liste des adresses de téléchargement.
+
+*Et si le livre vous a plu, vous pouvez m'offrir un café ☕ — c'est facultatif, et ça ne
+change rien à vos droits sur l'ouvrage.*
+
+> *(lien de soutien à ajouter — voir les options dans [LICENSE.md](LICENSE.md))*
+
+---
+
 *Juillet 2026 — pour le Commodore 64, quarante-quatre ans après.*
