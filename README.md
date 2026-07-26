@@ -190,6 +190,7 @@ Le dossier [`reference/`](reference/) contient les deux volumes, leur chaîne La
 
 ```bash
 ./tools/build_pdf.sh                            # markdown → LaTeX → PDF
+./tools/build_pdf.sh --tex                      # ... en gardant le LaTeX intermédiaire
 ./tools/shoot.sh livre-pas-a-pas/ch04/badline.a # assembler, lancer sur le C64 Ultimate,
                                                 #   et capturer ce qu'il affiche vraiment
 python3 tools/verifie.py                        # les cinq contrôles mécaniques
