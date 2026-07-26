@@ -1,0 +1,88 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 9 : FLI, toutes les couleurs
+;
+; On PROVOQUE une Bad Line a chaque ligne raster : le VIC relit
+; ses couleurs 200 fois par image au lieu de 25. Et le gel du
+; processeur, notre voleur du chapitre 4, devient notre metronome.
+;
+; Assembler :   acme fli.a
+; Lancer :      LOAD"FLI",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "fli.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+
+        ; --- le VIC regarde la banque 1 ($4000-$7fff) ---
+        lda $dd00
+        and #%11111100          ; les deux bits de banque sont INVERSES :
+        ora #%00000010          ;   %10 -> banque 1
+        sta $dd00
+
+        lda #0                  ; l'octet fantome du chapitre 8... mais en
+        sta $7fff               ;   banque 1 il vit en $7fff, pas en $3fff !
+
+; --- LA boucle : 23 cycles, indexee par la ligne raster elle-meme ---
+; Pas de compteur, pas de synchronisation : a chaque passage on relit
+; ou en est le faisceau et on ecrit ce que CETTE ligne demande. Si le
+; gel nous decale, le tour suivant se recale tout seul.
+fli     ldx $d012               ; 4 : le motif signature du chapitre 3
+        lda t11,x               ; 4 : le cran qui FORCE la Bad Line ici
+        sta $d011               ; 4
+        lda t18,x               ; 4 : la matrice de cette ligne
+        sta $d018               ; 4
+        jmp fli                 ; 3 -> 23 cycles pile
+
+;---------------------------------------------------------------
+; Les deux tables, calculees par l'assembleur.
+; Elles sont indexees par le NUMERO DE LIGNE (lu dans $d012).
+;   t11 : bitmap + ecran allume + 25 lignes + cran = L & 7
+;         -> l'egalite « 3 bits bas de L == cran » est VRAIE
+;            => Bad Line forcee sur CETTE ligne
+;   t18 : matrice n° (L & 7) parmi les huit, bitmap en $6000
+;---------------------------------------------------------------
+!align 255, 0
+t11 !for L, 0, 255 {
+        !byte $30 | (L & 7)     ; bitmap + ecran + 24 LIGNES + cran = L&7
+}
+!align 255, 0
+t18 !for L, 0, 255 {
+        !byte ((L & 7) << 4) | 8  ; matrice n° L&7, bitmap en $6000
+}
+
+;---------------------------------------------------------------
+; Les huit matrices video ($4000, $4400, ... $5c00).
+; En bitmap, un octet de matrice ne designe plus un caractere :
+; c'est UNE PAIRE DE COULEURS (4 bits hauts = les pixels a 1,
+; 4 bits bas = les pixels a 0) pour la cellule.
+; La ligne raster L lit la rangee L/8 de la matrice (L mod 8) :
+; huit matrices suffisent donc pour donner a CHAQUE ligne ses
+; propres couleurs.
+;---------------------------------------------------------------
+!for m, 0, 7 {
+    * = $4000 + m * $400
+    !for r, 0, 24 {
+        !for c, 0, 39 {
+            !byte ((((r * 8 + m) + c) & 15) << 4)
+        }
+    }
+    ; 1000 octets utiles, mais une matrice occupe 1024 : dans les toutes
+    ; dernieres lignes de l'image, le compteur du VIC depasse 1000 et lit
+    ; ces 24 octets-la. On les colorie donc au lieu de les laisser a zero,
+    ; sinon 24 cellules noires barrent le bas de l'ecran.
+    !for c, 0, 23 {
+        !byte ((((25 * 8 + m) + c) & 15) << 4)
+    }
+}
+
+;---------------------------------------------------------------
+; Le bitmap ($6000) : TOUS les pixels allumes, partout. Chaque
+; cellule prend donc la couleur « avant-plan » de sa matrice —
+; autrement dit, on ne regarde QUE les couleurs.
+;---------------------------------------------------------------
+* = $6000
+!fill 8192, $ff                 ; 1024 cellules et non 1000 : voir la note
+                                ; sur le bourrage des matrices ci-dessus

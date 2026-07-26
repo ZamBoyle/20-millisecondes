@@ -1,0 +1,29 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}\setmainfont{TeX Gyre Heros}
+\usetikzlibrary{arrows.meta}
+\definecolor{c64blue}{RGB}{44,41,177}\definecolor{froz}{RGB}{60,60,60}
+\definecolor{wri}{RGB}{200,150,60}
+\begin{document}
+\begin{tikzpicture}[x=0.9cm,y=0.7cm,font=\footnotesize]
+% signal BA
+\node[anchor=east] at (-0.3,2.5) {BA};
+\draw[thick,c64blue] (0,2.9) -- (2,2.9) -- (2,2.1) -- (8,2.1);
+\node[above] at (1,2.9) {\tiny haut};
+\node[below] at (5,2.1) {\tiny bas (le VIC réclame le bus)};
+\draw[dashed,gray] (2,-0.4) -- (2,3.2);
+\draw[dashed,gray] (5,-0.4) -- (5,3.2);
+% CPU
+\node[anchor=east] at (-0.3,1) {6510};
+\draw[fill=gray!25,draw=gray] (0,0.6) rectangle ++(2,0.8);
+\node at (1,1) {\tiny libre};
+\draw[fill=wri!70,draw=wri!50!black] (2,0.6) rectangle ++(3,0.8);
+\node at (3.5,1) {\tiny écritures encore possibles (≤ 3)};
+\draw[fill=froz,draw=black] (5,0.6) rectangle ++(3,0.8);
+\node[white] at (6.5,1) {\tiny gelé (AEC bas : bus au VIC)};
+% fleches
+\draw[-{Stealth},thick] (2,-0.1) -- node[below,pos=0.5]{\tiny 3 cycles de préavis} (5,-0.1);
+\node[align=left,anchor=north west] at (0,-0.9) {\tiny BA tombe \textbf{3 cycles avant} la prise
+du bus : le maximum d'écritures consécutives du 6510 est 3, et RDY est ignoré en écriture.\\
+\tiny Le CPU finit ses écritures puis s'arrête à sa première lecture. [Bauer §2.4.3] · [Ojala] · [64doc]};
+\end{tikzpicture}
+\end{document}

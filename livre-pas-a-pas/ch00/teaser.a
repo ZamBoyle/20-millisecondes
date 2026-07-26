@@ -1,0 +1,44 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 0 : la bande-annonce
+;
+; Vous ne comprendrez pas encore ce listing. C'est normal.
+; C'est la destination : à la fin du livre, il n'aura plus
+; aucun secret pour vous — et vous saurez faire bien mieux.
+;
+; Assembler :   acme teaser.a
+; Lancer :      LOAD"TEASER",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "teaser.prg", cbm
+
+* = $0801                       ; amorce BASIC : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence : plus personne ne nous interrompt
+
+boucle  ldx $d012               ; à quelle LIGNE en est le faisceau ?
+        lda couleurs,x          ; la couleur prévue pour cette ligne...
+        sta $d020               ; ...peinte sur la bordure
+        sta $d021               ; ...et sur le fond
+        jmp boucle              ; pour toujours
+
+; une vague de 16 couleurs, sombre -> claire -> sombre
+!macro vague { !byte 0,6,6,4,14,3,13,1,1,13,3,14,4,6,6,0 }
+
+couleurs                        ; 256 lignes = 16 vagues
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague

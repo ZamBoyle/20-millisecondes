@@ -1,0 +1,34 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 2 : une bande qui ne bouge pas
+;
+; On guette le faisceau, et on ne peint qu'au moment choisi.
+;
+; Assembler :   acme bande.a
+; Lancer :      LOAD"BANDE",8,1  puis  RUN   (RUN/STOP+RESTORE pour sortir)
+;---------------------------------------------------------------
+!to "bande.prg", cbm
+
+* = $0801                       ; 10 SYS 2064 (l'amorce du chapitre 1)
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; le systeme ne nous interrompra plus
+
+; --- guetter la ligne $80 (128), au milieu de l'ecran ---
+haut    lda $d012               ; ou en est le faisceau, LA, maintenant ?
+        cmp #$80                ; est-il arrive a la ligne 128 ?
+        bne haut                ; non : on regarde encore
+        lda #$0a                ; oui : rouge clair
+        sta $d020               ;   bordure
+        sta $d021               ;   et fond
+
+; --- guetter la ligne $a0 (160), 32 lignes plus bas ---
+bas     lda $d012
+        cmp #$a0
+        bne bas
+        lda #$0e                ; bleu clair : la bordure d'origine
+        sta $d020
+        lda #$06                ; bleu : le fond d'origine
+        sta $d021
+
+        jmp haut                ; et on recommence, trame apres trame

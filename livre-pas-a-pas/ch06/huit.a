@@ -1,0 +1,102 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 6 : les huit, en rang
+;
+; Les huit sprites, même dessin, huit couleurs, alignés au milieu
+; de l'écran. Aucune astuce : chaque position est écrite à la main,
+; casier par casier. C'est long à lire, mais rien n'est caché.
+;
+; Assembler :   acme huit.a
+; Lancer :      LOAD"HUIT",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "huit.prg", cbm
+
+* = $0801                       ; l'amorce du chapitre 1 : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        lda #dessin / 64        ; l'assembleur fait la division : 2560 / 64 = 40
+        sta $07f8               ; les huit pointeurs, un par sprite...
+        sta $07f9
+        sta $07fa
+        sta $07fb
+        sta $07fc
+        sta $07fd
+        sta $07fe
+        sta $07ff               ; ...tous sur le MÊME dessin
+
+        lda #140                ; même Y pour les huit : la même rangée
+        sta $d001
+        sta $d003
+        sta $d005
+        sta $d007
+        sta $d009
+        sta $d00b
+        sta $d00d
+        sta $d00f
+
+        lda #60                 ; les X, un par un, de 32 pixels en 32 pixels
+        sta $d000
+        lda #92
+        sta $d002
+        lda #124
+        sta $d004
+        lda #156
+        sta $d006
+        lda #188
+        sta $d008
+        lda #220
+        sta $d00a
+        lda #252
+        sta $d00c
+        lda #28                 ; le huitième : 284 = 256 + 28
+        sta $d00e
+        lda #%10000000          ; ...son 9e bit, et lui seul
+        sta $d010
+
+        lda #1                  ; huit couleurs, une par sprite
+        sta $d027               ; blanc
+        lda #7
+        sta $d028               ; jaune
+        lda #8
+        sta $d029               ; orange
+        lda #10
+        sta $d02a               ; rouge clair
+        lda #13
+        sta $d02b               ; vert clair
+        lda #3
+        sta $d02c               ; cyan
+        lda #14
+        sta $d02d               ; bleu clair
+        lda #4
+        sta $d02e               ; rose
+
+        lda #%11111111          ; les huit interrupteurs d'un coup
+        sta $d015
+        rts
+
+;---------------------------------------------------------------
+; Le même dessin qu'au listing précédent, au même endroit.
+;---------------------------------------------------------------
+* = $0a00
+dessin
+        !byte %00000000,%01111110,%00000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000111,%11111111,%11100000
+        !byte %00001111,%11111111,%11110000
+        !byte %00011100,%01111110,%00011100
+        !byte %00011100,%01111110,%00011100
+        !byte %00111100,%01111110,%00111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111110,%11111111,%01111100
+        !byte %00011111,%00000000,%11111000
+        !byte %00011111,%11111111,%11111000
+        !byte %00001111,%11111111,%11110000
+        !byte %00000111,%11111111,%11100000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000000,%01111110,%00000000

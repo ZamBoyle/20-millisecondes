@@ -1,0 +1,83 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 8 : ouvrir la bordure du bas
+;
+; La bordure n'est pas une zone : c'est un robinet, ouvert par
+; UNE comparaison exacte. On change la valeur comparee juste
+; avant qu'elle ne tombe juste -> le robinet ne s'ouvre jamais.
+;
+; Assembler :   acme sansbord.a
+; Lancer :      LOAD"SANSBORD",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "sansbord.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        ; --- une creature, posee SOUS le bas de l'ecran ---
+        lda #40                 ; dessin au bloc 40 ($0a00)
+        sta $07f8
+        lda #160
+        sta $d000               ; X
+        lda $d010
+        and #%11111110          ; X ne depasse pas 255
+        sta $d010
+        lda #250                ; Y = 250 : dans la « bordure » du bas
+        sta $d001
+        lda #7                  ; jaune
+        sta $d027
+        lda $d015
+        ora #%00000001          ; sprite 0 allume
+        sta $d015
+
+        lda #0                  ; l'octet fantome : voir la fin du chapitre
+        sta $3fff
+
+        sei                     ; silence
+
+; --- a chaque trame : empecher les DEUX comparaisons de tomber juste ---
+attend1 lda $d012
+        cmp #250                ; la ligne 251 va arriver...
+        bne attend1
+        lda $d011
+        and #%11110111          ; ...on passe en 24 lignes : la valeur
+        sta $d011               ;    comparee devient 247, deja passee
+
+attend2 lda $d012
+        cmp #252                ; la ligne 251 est passee sans rien declencher
+        bne attend2
+        lda $d011
+        ora #%00001000          ; on remet 25 lignes pour la trame suivante
+        sta $d011
+
+        jmp attend1
+
+;---------------------------------------------------------------
+; Le dessin : 21 lignes de 3 octets = 63 octets.
+; Adresse OBLIGATOIREMENT multiple de 64 ($0a00 = 40 x 64).
+; Un « 1 » = un pixel de la couleur du sprite, un « 0 » = rien
+; du tout : on voit l'écran à travers.
+;---------------------------------------------------------------
+* = $0a00
+dessin
+        !byte %00000000,%01111110,%00000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000111,%11111111,%11100000
+        !byte %00001111,%11111111,%11110000
+        !byte %00011100,%01111110,%00011100
+        !byte %00011100,%01111110,%00011100
+        !byte %00111100,%01111110,%00111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111110,%11111111,%01111100
+        !byte %00011111,%00000000,%11111000
+        !byte %00011111,%11111111,%11111000
+        !byte %00001111,%11111111,%11110000
+        !byte %00000111,%11111111,%11100000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000000,%01111110,%00000000

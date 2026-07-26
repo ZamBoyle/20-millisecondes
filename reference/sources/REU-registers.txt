@@ -1,0 +1,84 @@
+(Source : zimmers.net .../chipdata/reu.registers — table des registres $DF00-$DF0A)
+
+Address	Bits	Function
+0		Status register - read only
+	7	Interrupt Pending (1=interrupt waiting to be serviced)
+	6	End of Block (1=transfer complete)
+	5	Fault (1=block verify error)
+	4	Size (1=256 kB)
+	3-0	Version number
+	Note: Bits 7-5 are cleared when this register is read.
+
+Other registers are R/W:
+
+1		Command Register
+	7	Execute (1=initiate transfer per current config)
+	6	reserved (left 1 in an example program in the manual)
+	5	Load (1=enable AUTOLOAD option)
+	4	FF00 (1=disable FF00 decode)
+	3-2	reserved (left 1)
+	1-0	Transfer type:	00=C64->REU
+				01=REU->C64
+				10=swap
+				11=verify
+
+AUTOLOAD: When you select this option, the C64 base address registers, the
+expansion memory base address registers (including bank) and the byte counter
+registers at the end of a transfer are automatically reloaded. This is useful
+if one operation is to be executed repeatedly on one particular block of data.
+Note that if AUTOLOAD is selected in verify mode, the address where the verify
+error occurred is lost. Ordinarily, upon finding a verify error, the REC halts
+the DMA cycle and both address registers and the bank register point to one
+location above the address that failed.
+
+FF00 decode means that the REU won't begin the transfer right away after the
+execute bit is set, it will wait for a write access to $FF00. The FF00 option 
+is cleared each time it is used.
+
+2	7-0	C64 start address (LSB)
+3	7-0	C64 start address (MSB)
+(address overflow is not detected; it will continue from $0000)
+4	7-0	REU start address (LSB)
+5	7-0	REU start address (More SB)
+6	2-0	REU start address (most significant bits)
+(This is referred as bank; however it is like start address, because if a
+64kB "bank" boundary is crossed, the bank is incremented. Note that the maximum
+amount of memory is 2^19 bytes=0.5 MB. The upper bits of this register are
+unused, so if someone cloned the chip, we it could address up to 2^24 B=16 MB.)
+
+7	7-0	Transfer length (LSB) ($0000=64 kB)
+8	7-0	Transfer length (MSB)
+
+9		Interrupt Mask Register
+	7	Interrupt enable (1=interrupts enabled)
+	6	End of Block mask (1=interrupt on end of block)
+	5	Verify error (1=interrupt on verify error)
+	4-0	unused (left 0 in an example program)
+
+(Comment: the interrupt capability is useless, as the processor won't run
+anything during the transfer process. It just initiates the transfer, waits for
+it to be completed, and continues executing the program. So the interrupt would
+occur right after the transfer command in the program.)
+
+Note: if the interrupts are used, you have to read the status register (0) at
+least once between successive transfers for proper operation.
+
+A	7-6	Address Control Register
+		00=increment both addresses
+		01=fix expansion address
+		10=fix C64 address
+		11=fix both addresses
+(The mode 10 could be used to play digitized music or to digitize it. No other
+applications come in my mind. And the sampling frequency is a bit too high,
+about 1 MHz. You can transfer only 64kB per request, so it would last less than
+0,0665 seconds.)
+
+And some notes:
+Under normal operation (no Autoload, address increment), both address registers
+point to the next sequential memory location outside the selected transfer 
+range at the end of the transfer. This is true for any mode and applies to both
+base (and bank) address pointers except one that is held fixed. Also note that
+under normal operation, the byte counter decrements to the value 1. Care should
+be taken, therefore, to check the transfer complete byte counter value to
+indicate an end to the transfer condition. A byte counter of 0 results in a
+transfer of a full 64 kB. Again, wrapping occurs in all modes of operation.

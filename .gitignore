@@ -1,0 +1,8 @@
+# binaires assembles (reconstruits par acme a la demande)
+*.prg
+
+# rendus intermediaires
+*.aux
+*.log
+*.out
+*.toc

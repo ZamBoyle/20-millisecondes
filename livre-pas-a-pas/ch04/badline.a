@@ -1,0 +1,21 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 4 : la Bad Line, a l'oeil nu
+;
+; Le meme chronometre que « chrono », mais il peint le FOND :
+; les stries traversent la zone d'affichage, la ou le VIC vient
+; reclamer le couloir. Une ligne sur huit, le compte s'effondre.
+;
+; Assembler :   acme badline.a
+; Lancer :      LOAD"BADLINE",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "badline.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+
+boucle  inc $d021               ; 6 cycles : couleur de FOND + 1
+        jmp boucle              ; 3 cycles -> 9 cycles par strie
+                                ; 63 / 9 = 7 stries par ligne, pile

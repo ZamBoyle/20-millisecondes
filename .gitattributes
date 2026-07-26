@@ -1,0 +1,10 @@
+# fins de ligne : LF partout, sinon les scripts shell cassent au checkout
+* text=auto eol=lf
+
+# ... SAUF les sources primaires : ce sont des documents d'archive, ils doivent
+# rester octet pour octet tels qu'ils ont ete recus (certains sont en CRLF).
+reference/sources/** -text
+
+*.png binary
+*.pdf binary
+*.prg binary

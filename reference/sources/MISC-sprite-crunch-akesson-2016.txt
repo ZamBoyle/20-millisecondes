@@ -1,0 +1,610 @@
+MASSIVELY INTERLEAVED SPRITE CRUNCH (MISC) - Linus Akesson, 2016
+Source: https://www.linusakesson.net/scene/lunatico/misc.php
+(sauvegarde texte pour le corpus Arena64 ; l'original contient des figures)
+
+Massively Interleaved Sprite Crunch
+
+linusakesson.net
+
+(show navigation)
+(hide navigation) Swedish content
+
+Site search:
+
+Navigation
+Home & news
+Random page
+All pages
+Databases
+Fortune cookies
+SID themes
+
+Page collections
+Blag
+Chip music
+Chipophone
+Games
+Hardware projects
+Music downloads
+Obfuscated programming
+Piano music
+Sane programming
+Scene productions
+SID related pages
+Software downloads
+Underhanded code
+Video clips
+
+Featured pages
+15 Years of Scene Spirit
+Å-machine
+A Mind Is Born
+Autosokoban
+AVR Programmer 64
+Bach Forever
+BASIC Music
+Blackbird
+Boléro
+C64 Theremin
+Chipophone
+Commodordion
+Computers
+Craft
+Craverly Heights in Dialog
+Dial-a-SID
+Dialog
+Elements of Chip Music
+Faking Fissile Material
+Fratres
+Front-panel booting
+GCR decoding on the fly
+Guitar Slinger
+Hanlon Fugue
+Hardsync
+Impossible Bottle
+Kaleidoscopico
+Kernighan's lever
+Lunatico
+Machine Yearning
+MISC
+Music For Microcontrollers
+Nine
+Padme
+Parallelogram
+Partita Prelude
+Paulimba
+Perpetual Fragility
+Plushies start to arrive
+Poems for bugs
+Quondam Tunneling
+Qweremin
+Qwertuoso
+Safe VSP
+Sidreloc
+Sommarfågel
+Spindle v3
+Sum Ergo Demonstro
+Sum Ergo Demonstro Explained
+TTY demystified
+Vocalise
+Watch Room
+We learn the nibbles
+Wings I've lost in dreams
+Withering Bytes
+Wood Chip 2025
+Wood Chip 2026
+
+Fund my projects
+“Shut up & take my money!”
+Patreon
+Steady
+Don't miss
+
+Turbulence
+Forum
+Register
+Log in
+Latest comments
+Syndication
+RSS feed
+Feedback
+
+Massively Interleaved Sprite Crunch
+
+This article describes the inner workings of
+Massively Interleaved Sprite Crunch (MISC), a new C64 demo effect
+introduced in my demo Lunatico.
+
+The effect is used in the greetings part, depicted below.
+
+I know that most of my readers don't code for the C64. You may still want to
+skim through the article, just to get a feeling of what it's like. Or you could
+watch my talk Poems for Bugs
+for a gentler introduction to the subject.
+
+The MISC effect is actually a combination of three new ways of abusing
+quirks in the VIC chip. The quirks themselves have been known for a long time,
+but they have never been put to use in this particular way before.
+
+Background
+
+(You can skip this part if you already know about sprites on the C64.)
+
+The video interface controller (VIC chip) in the Commodore 64 supports
+sprites. A sprite is a small piece of graphics, 24 x 21 pixels
+in size, that can be placed anywhere on the screen. Each pixel is either opaque
+or transparent. (That's a simplification; there's also a multi-colour
+mode, but it's not used for this effect.) Up to eight sprites can be active at
+the same time. A sprite is activated by writing the desired X and
+Y coordinates, foreground colour and a pointer to the pixel data into
+special memory locations—there are eight copies of these special
+locations, one for each sprite—and setting the corresponding bit in the
+Sprite Enable register.
+
+As the video beam traces down the screen, it eventually arrives at the
+rasterline just above the sprite. Here, sprite DMA is activated. From
+this point on, the CPU is halted for a few clock cycles on every rasterline,
+during which graphics data for the sprite are fetched from memory. Pixels are
+fetched during the horizontal blanking period that precedes the line on which
+they are emitted. On the final rasterline of the visible sprite, DMA is turned
+off again.
+
+Sprites may be Y-expanded by setting a bit in a special register.
+Expansion is handled independently for each sprite. When a sprite is
+Y-expanded, each line of pixel data is fetched twice. That is, the pointer to
+the next row of data is only incremented on every other line. In the hardware,
+this is implemented using a latch (or flag) that is toggled on
+every line in Y-expanded mode. The pointer is only incremented if the latch is
+currently set.
+
+A quite intentional feature of the VIC chip is that sprites may be reused
+several times during a single video frame. After a sprite has finished
+displaying, i.e. on the rasterline just below it, you may re-initialise the
+X and Y coordinates, colour, pointer to graphics etc., and in that
+way reuse the sprite hardware further down on the screen. You can do this as
+many times as you wish in order to put lots of movable objects on the screen.
+This is known as sprite multiplexing. However, there's an inherent
+limitation: Once a sprite has been activated, it will remain active until each
+of its 21 lines of pixels have been emitted and its DMA has been turned
+off again. You can't abort a sprite after, say, 10 rasterlines.
+
+Sprite Crunch
+
+The traditional way of laying out sprite graphics in memory. The dark grey byte doesn't get fetched.
+
+Sprite pixels are stored in a 63-byte data structure, organised as an array
+of twenty-one chunks of three bytes each. Every three-byte chunk contains the
+24 pixels corresponding to one row of sprite graphics. This data structure
+must be aligned on a 64-byte boundary in memory. The high bits of the address
+of this data structure are known as the sprite pointer. For each sprite,
+the VIC chip maintains a current 6-bit sprite offset corresponding to
+the lower bits of the address. This offset is kept in an internal per-sprite
+register called MCBASE.
+
+Under normal circumstances, sprite data is fetched as follows: When the
+sprite is first enabled, MCBASE is reset to zero. For each rasterline
+where sprite DMA is enabled, MCBASE is first copied into another 6-bit
+register called MC. While fetching the three bytes that make up a row,
+MC is incremented, so that after fetching the row,
+MC = MCBASE + 3 (mod 64). Then, depending on
+the current value of the Y-expand latch, MCBASE is either left alone,
+or set to the current value of MC. The whole thing then repeats until
+MCBASE = 63.
+
+There is, however, a very curious way in which we can trick the VIC chip
+into doing something entirely different. It was first used by Pernod in
+the demo Rutig Banan (1989),
+and subsequently explored and described in more detail by Crossbow in
+the demo Krestage (1997).
+Crossbow named the effect sprite crunch, because he used it to crunch
+sprites—make them shorter—in order to be able to reuse the sprite
+hardware earlier. (The naming is unfortunate, in the sense that the effect may
+equally well be used for making sprites taller, but we are stuck with the name.
+HCL has suggested sprite scrambling, but it hasn't caught on.)
+
+Krestage:
+
+Precise timing is required for this trick. Specifically, one has to
+disable Y-expand at the fifteenth clock cycle of a rasterline. This will
+apparently flip the latch while the VIC chip is halfway through the act of
+determining whether to assign the MCBASE register from MC or
+from itself (i.e. leaving it at its current value). The hardware is confused by
+this, and MCBASE instead receives the following very peculiar value:
+((MC | MCBASE) & 0x15) | ((MC & MCBASE) & 0x2a). That is, the bits of
+the two candidate values are alternately combined using bitwise AND and bitwise
+OR.
+
+This allows us to mess with the sprite offset and skip around inside the
+sprite graphics, but only via a predefined set of jumps, shown in the graph to
+the right. Sprite crunching is perhaps the most bizarre VIC chip bug discovered
+to this day, and many programmers consider it to be too complicated to be
+useful in practice.
+
+Flexible sprite height
+
+Crossbow found the shortest path from start to end, which
+passes through 17 nodes. Thus, he was able to reuse a sprite after
+17 rasterlines instead of the usual 21, and consequently reported
+this as the minimum height of a sprite. But that is only true under the
+assumption that we always have to begin at start. If we organise our
+pixels differently, we could instead treat, say, offset 0x15 as the origin,
+crunch our way through the sequence 15–18–1b–1e and be back
+at the origin after no more than four rasterlines. This particular sequence has
+been used in several demos, including Edge of Disgrace (2008)
+and my own Shards of Fancy
+(2013).
+
+The first innovation in MISC is the following: By studying the sprite
+crunch graph, I discovered that if we start from offset 0x35, we have as
+many as eight different loops of varying length at our disposal. The lengths are 1, 13,
+14, 17, 18, 19, 20 and 21. So if we always organise our pixel data with the
+top-left corner of the graphical object at offset 0x35, we can effectively
+create columns of sprites of varying height.
+
+In the greetings part of Lunatico, four different sprite heights are used,
+corresponding to loops of length 14, 17, 19 and 21:
+
+35–38–3b–3e–15–18–1b–1e–21–25–28–2b–2e–31
+
+35–38–3b–3e–01–05–08–0b–0f–17–1a–1d–20–23–27–2a–2d
+
+35–38–3b–3e–01–04–07–0a–0d–15–18–1b–1e–21–25–28–2b–2e–31
+
+35–38–3b–3e–01–05–08–0b–0e–11–14–17–1a–1d–20–23–26–29–2c–2f–32
+
+The same space invader, organised in memory according to a crunch schedule of length 17, starting at (and returning to) offset 0x35. Dark grey bytes aren't fetched.
+
+Let's refer to such sequences as crunch schedules.
+
+The last of the schedules listed above is noteworthy enough to be referred
+to as the second innovation. Sprites are normally 21 lines tall, so
+by crunching at just the right moment (here jumping from offset 0x01
+to 0x05) we obtain a full-height loop. In fact, there are several
+such loops; one could just as well crunch at offset 0x03, towards the beginning
+of normal sprite display, or at offset 0x39, towards the end.
+
+This second innovation isn't pivotal for the greetings part of
+Lunatico, which probably would have looked just as good with a maximum sprite
+height of 20, but it ought to be a very useful technique in general.
+Normally, in order to create a full-width sprite carpet—a large,
+rectangular portion of the screen with sprites arranged back-to-back in a
+grid—one must spend at least 34 cycles for every sprite row just to
+update the Y coordinate registers. By making use of a 21-line loop as
+described above, this can be reduced to 12 cycles. The drawback is that it
+requires precise timing and won't work on badlines.
+
+At this point, it may be illustrative to describe how the Lunatico greetings
+part is built up. The skyline on the left side is part of a bitmap picture and
+doesn't concern us here. The eight columns of letters are built up from
+sprites. Each letter exists in four different versions, of heights 14, 17, 19
+and 21. The pixels have been organised with the origin at sprite offset
+0x35, and the first line is always blank (this is the small gap between
+letters).
+
+If, say, a particular letter of height 17 is to be displayed, the
+sprite crunch trick needs to be triggered five times for that sprite, according
+to the crunch schedule of length 17: At offsets 0x01, 0x0b, 0x0f, 0x23
+and 0x2d. To clarify: Look at the graph, start at offset 0x35. Solid lines
+represent the normal case of adding three to the offset, whereas dashed lines
+represent triggering the glitch. Crunching at the aforementioned offsets will
+bring you back to offset 0x35 in exactly 17 steps.
+
+To build up the entire video frame, the crunch schedules of every letter in
+every column have to be combined somehow. If the letters weren't moving, that
+computation could be performed offline (i.e. at compile time), with the result
+organised as a table with one entry per rasterline. A loop of timed
+code would read the precomputed values from the table and feed them into the
+Y-expand hardware register.
+
+But of course, as the characters wobble independently in each column, these
+interleaved crunch schedules also have to move about. The C64 does not have
+enough memory to keep one such precalculated table for every animation frame,
+and there isn't enough time during vertical blanking to compute new tables on
+the fly. Instead, we must at least partially compute the values for the
+Y-expand register in realtime, during the visible portion of the display. But
+this involves somehow computing the eight desired bits of the register
+independently, joining them together into a byte, writing that byte into the
+register at the precise moment, and finally resetting the register in
+anticipation of the next rasterline. But with all sprites enabled, sprite DMA
+is going to take away most of the CPU time—in fact, we only have
+44 clock cycles left per rasterline for doing all that.
+
+This is where the third innovation enters the picture.
+
+How to represent crunch schedules
+
+The VIC chip has a feature that is rarely used in demos: Collision
+detection. A sprite is said to collide with the background graphics (i.e.
+non-sprite graphics) if the sprite emits a non-transparent pixel at the same
+time as the video generator emits a foreground pixel. When this happens, a
+latch is set in a special hardware register. There is one latch bit for each
+sprite. Reading the register clears the latches. This is useful when
+programming simple games, such as Pong: During vertical blanking, it is
+easy to check whether the ball hit a wall during the preceding frame. (There is also
+support for detecting sprite-to-sprite collisions, but that feature isn't used in the
+Lunatico greetings part.)
+
+But note that collision detection can be used more than once in a single video
+frame. The latches are set on collisions, and cleared when reading the
+register.
+
+The rightmost pixel in each row is repurposed to indicate whether a sprite crunch is due three rasterlines later. Dark grey bytes aren't fetched.
+
+MISC hinges on the idea that we can encode the crunch schedule for a sprite
+in the very pixels of the sprite, and read it out using collision
+detection. Then, as the sprite moves around on the screen, so do the locations
+on which its pixels trigger collisions. In Lunatico, each sprite column is
+covered by a thin, black stripe of foreground pixels, hidden in the bitmap
+displayed by the video generator. Since the background is also black, the
+stripes are invisible to the eye, but they cover the rightmost pixels of each
+sprite. And as a consequence, when those rightmost pixels are set, they trigger
+collisions.
+
+Hence, we can read the collision register at the end of each rasterline and
+obtain the rightmost pixel of the current row of each of the eight sprites,
+already packed into a single byte. This byte is simply copied into the Y-expand
+register. The rightmost pixels of each sprite have been set up to trigger the
+correct sequence of crunch operations to maintain the correct loop for the
+desired sprite height. So if we were to leave the sprite pointers untouched,
+this would cause each column to display a particular letter of a particular
+height, repeated all the way down the screen.
+
+But of course, in the actual demo effect, the sprite pointers are updated
+just after each letter, diverting the graph traversal into the correct crunch
+schedule for the next letter, and so on all the way down. And thus we have
+reduced the problem of managing the timing of each individual sprite crunch
+event (several for each letter) into the much easier problem of managing the
+timing of the sprite pointer updates (one for each letter). This is what makes
+the effect feasible.
+
+Tribulations of timing
+
+The clean principle outlined above is complicated by a couple of
+practicalities. First of all, in order to crunch a sprite, we have to
+disable Y-expand at cycle 15. To disable Y-expand, it must first be
+enabled. But when we don't wish to crunch, we shouldn't enable Y-expand
+in the first place, or we would end up with a line of graphics being displayed
+twice. The upshot is that the dynamic information (stored in the pixels) must
+indicate whether or not we have to enable Y-expand in anticipation of a
+sprite crunch. Then, at cycle 15, we simply turn off Y-expand for all
+sprites.
+
+Furthermore, recall that sprite pixels are fetched during the rasterline
+preceeding the one on which they are displayed. So the data fetched during
+line 0 is displayed during line 1, sampled as soon as possible
+afterwards, namely early during line 2, after which it is used to set up
+the Y-expand register in anticipation of a line crunch on line 3. Hence,
+crunch operations are delayed, and have to be encoded in the sprite graphics
+three rasterlines earlier than they are supposed to happen.
+
+Such a delay is straightforward to bake into the pixels of a particular
+sprite, but it becomes problematic around the seams since we want to support
+switching between different crunch schedules. Critically, all the schedules
+used in my effect start with the same four offsets:
+35–38–3b–3e. Hence, as long as we update the sprite pointers
+while displaying the data that was fetched from offset 0x35 or from the last
+offset before wrapping around, everything will be fine.
+
+There won't be enough time to update all eight sprite pointers on the same
+rasterline. But as it turns out, we can arrange the code to allow updates
+to sprites 0–4 on odd lines and sprites 5–7 on even lines. That is
+why every sprite needs to have a row of blank pixels at offset 0x35: The
+pointer update could be off by one line, but this won't result in a visual
+artefact, because it is precisely the blank line that might get fetched from
+the wrong location.
+
+At this point, let's have a look at the actual code for a pair of
+rasterlines. Note that sprite DMA takes away cycles 55 through 10,
+although cycle 55 is available for writing.
+
+;               Invariants: x = y = 0     Cycle
+
+template
+                nop                     ; 54 11
+
+                sty     $d017           ; 12, crunch
+                lda     $d01f           ; 16
+                sta     $d017           ; 20
+tem_s5
+                lda     #$80            ; 24
+                lda     vm+$3fd         ; 26
+tem_s6
+                lda     #$80            ; 30
+                lda     vm+$3fe         ; 32
+tem_s7
+                lda     #$80            ; 36
+                lda     vm+$3ff         ; 38
+
+                nop                     ; 42
+                nop                     ; 44
+                nop                     ; 46
+                nop                     ; 48
+tem_rr
+                lda     #$3e            ; 50
+                sta     $d011           ; 52, repeat row
+
+                shy     $d017,x         ; 11, crunch
+                lda     $d01f           ; 16
+                sta     $d017           ; 20
+tem_s0
+                lda     #$80            ; 24
+                lda     vm+$3f8         ; 26
+tem_s1
+                lda     #$80            ; 30
+                lda     vm+$3f9         ; 32
+tem_s2
+                lda     #$80            ; 36
+                lda     vm+$3fa         ; 38
+tem_s3
+                lda     #$80            ; 42
+                lda     vm+$3fb         ; 44
+tem_s4
+                lda     #$80            ; 48
+                lda     vm+$3fc         ; 50
+
+The above template is rolled out a hundred times, forming the bulk of the
+rastercode for this effect.
+
+$80 is a dummy value. During vertical blanking, sprite pointers are
+written into these operands, and the subsequent lda instructions are
+changed into sta instructions, writing the sprite pointers into the
+proper locations. Before updating the rastercode for the next video frame, the
+sta instructions are changed back into harmless lda
+instructions.
+
+The actual sprite crunch is triggered by clearing the Y-expand register
+($d017) at cycle 15. The sty instruction takes four
+cycles, the last one being the actual write cycle. The shy instruction
+performs the same operation in five cycles (x and y are
+zero). We write to $d011 at cycle 55 on every other line in order
+to stave off badlines, which would otherwise mess up the timing completely. It
+is possible to squeeze in the write to $d011 right before sprite DMA,
+but when we return we're already at cycle 11, and since there are no
+single-cycle instructions, we have to use a five-cycle instruction such as
+shy.
+
+Now, before we can jump into the above rastercode, we have to ensure that
+each of the eight sprites is currently at the correct offset. The eight columns
+of letters are scrolling smoothly and independently of each other, so these
+offsets are going to be different on every frame, and offset 0x35 isn't
+even part of the normal sequence (where every offset is divisible by three).
+This calls for a chunk of preliminary rastercode, just to get all the initial
+sprite offsets right. What I ended up doing was to start all sprites at the
+same Y coordinate somewhere in the upper border, and crunch them all at
+offset 0x2d (ending up at 0x35). Then I start applying the MISC
+technique as described, but for a given number of rasterlines (depending on the
+smooth-scroll offset of each column) I override the value from the collision
+register with a logic one, forcing a sprite crunch from offset 0x35 back
+to itself, effectively stretching the sprite. The bitmasks for overriding the
+collision register are taken from a small table (22 bytes) that is
+calculated during the vertical blanking interval.
+
+Every column is animated independently. There isn't enough time during
+vertical blanking to rearrange the pointer updates in the rastercode for all
+eight of them. In fact, only two or three columns move in each frame, although
+in my opinion it still looks like a 50 fps effect overall. What determines
+whether two or three columns are updated? This actually depends on the music. I
+animate two columns, call the music player, then read out the current raster
+position to determine whether there's enough time to animate a third
+column.
+
+Conclusion
+
+In this article, I have described how to implement Massively Interleaved
+Sprite Crunch, a new demo effect for the C64. I hope you'll agree that state
+of the art VIC trickery in 2016 is complicated, delightfully idiosyncratic,
+even downright wacky—but perfectly explicable.
+
+Posted Monday 19-Dec-2016 21:22
+
+Discuss this page
+Disclaimer: I am not responsible for what people (other than myself) write in the forums. Please report any abuse, such as insults, slander, spam and illegal material, and I will take appropriate actions. Don't feed the trolls.
+Jag tar inget ansvar för det som skrivs i forumet, förutom mina egna inlägg. Vänligen rapportera alla inlägg som bryter mot reglerna, så ska jag se vad jag kan göra. Som regelbrott räknas till exempel förolämpningar, förtal, spam och olagligt material. Mata inte trålarna.
+Anonymous
+Tue 20-Dec-2016 09:42
+Very clever, and thanks for the interesting read!
+
+Greetings from Daniel (Pernod)
+
+8 more comments hidden. Click to show all.
+
+Anonymous
+Wed 21-Dec-2016 11:00
+Very interesting read! I wish there were more of such clear in-depth articles explaining these tricks. That's a clever and elegant solution to encode the crunch schedule into the sprite.
+
+Btw, ((MC | MCBASE) & 0x15) | ((MC & MCBASE) & 0x2a) can be simplified to (MC | MCBASE) & 0x3f, can't it? Is it known what's happening in the hardware when this value is generated?
+
+lft
+Linus Åkesson
+Wed 21-Dec-2016 12:30
+Btw, ((MC | MCBASE) & 0x15) | ((MC & MCBASE) & 0x2a) can be simplified to (MC | MCBASE) & 0x3f, can't it?
+
+No, the proposed simplification would compute bitwise-or between all the bits. The original expression computes bitwise-and for odd-numbered bits, bitwise-or for even-numbered bits.
+
+Is it known what's happening in the hardware when this value is generated?
+
+I have a pretty good guess: Every other bit is inverted in the internal representation. This is sometimes done when implementing registers that have to be incremented quickly, and MC does have to be incremented on three succesive half-cycles. So what *really* happens is a bitwise-and across the entire value, and this is a typical artefact of NMOS logic.
+
+Anonymous
+Wed 21-Dec-2016 16:34
+lft wrote:
+Btw, ((MC | MCBASE) & 0x15) | ((MC & MCBASE) & 0x2a) can be simplified to (MC | MCBASE) & 0x3f, can't it?
+
+No, the proposed simplification would compute bitwise-or between all the bits. The original expression computes bitwise-and for odd-numbered bits, bitwise-or for even-numbered bits.
+
+Oops, that was dumb. I read the article yesterday, but this morning I thought it was ((MC | MCBASE) & 0x15) | ((MC | MCBASE) & 0x2a), that is, MC | MCBASE twice. I should not post before morning coffee :-)
+
+ralph
+Ralph Corderoy
+Wed 28-Dec-2016 19:27
+lft wrote:
+Every other bit is inverted in the internal representation. This is sometimes done when implementing registers that have to be incremented quickly
+
+Is this to speed the carry ripple?  Have you a name for this technique so I can Google, or a reference?
+
+lft
+Linus Åkesson
+Thu  5-Jan-2017 15:18
+ralph wrote:
+lft wrote:
+Every other bit is inverted in the internal representation. This is sometimes done when implementing registers that have to be incremented quickly
+
+Is this to speed the carry ripple?  Have you a name for this technique so I can Google, or a reference?
+
+I couldn't find anything that mentions counters in particular, but it's described for adders in general e.g. here, slides 10-11: http://www.cs.tufts.edu/comp/103/notes/Lecture13(Adders).pdf
+
+Anonymous
+Fri  6-Jan-2017 20:38
+Very interesting explanation of a very clever technique. The demo itself is also a gem!
+
+Greetings from Poland. 
+
+Krzysztof (Brush/Elysium)
+
+Anonymous
+Tue  7-Mar-2017 02:03
+Hello, great explanation and fantastic demo! 
+
+If your crunched sprite starts at offset 0x35 what do you do to get there to begin with? Do you start at 0 with the FG color set to black or in the top border and do some dummy crunch to traverse the graph to the right starting point? 
+
+On another topic, it seems the demo can behave a bit weird with multiple disk drives present on the serial bus (tried with a real 1541 as drive 8 and an Ultimate-II as drive 9)... could it be that you implement some custom serial protocol which the other drive might respond to or something?
+
+Anonymous
+Thu 15-Jun-2017 14:44
+I'm really a novice ... I almost understood  nothing with your disquisitions except some basic concept... I envy you deeply :) ... 
+Thanks guys for your passion and for you knowledge sharing !
+
+Anonymous
+Fri  1-Dec-2017 04:03
+If your crunched sprite starts at offset 0x35 what do you do to get there to begin with? Do you start at 0 with the FG color set to black or in the top border and do some dummy crunch to traverse the graph to the right starting point? 
+
+Was wondering that myself. I guess that's what he means. Im unsure of the benefit of this though, as opposed to simply changing the sprite definition pointer. The sprite hasnt ended, and loops back... so I guess you can change the def and effectively have the sprite "start again". It's still the same sprite though, as opposed to the 17 pixel sprites that are the minimum.
+
+On another topic, it seems the demo can behave a bit weird with multiple disk drives present on the serial bus (tried with a real 1541 as drive 8 and an Ultimate-II as drive 9)... could it be that you implement some custom serial protocol which the other drive might respond to or something?
+
+Nearly all modern demo loaders have the same issue. They uses the various lines in weird ways, which means the ATTN line (from memory) is getting smashed and confusing other attached drives.
+
+Could possibly be worth enumerating the attached drives at the start and putting all drives except #8 in a hard loop of some kind, but the easier solution is to just turn off all drives except #8 when watching a demo :)
+
+StY1z000r
+
+Anonymous
+Tue 24-Jul-2018 03:55
+If your crunched sprite starts at offset 0x35 what do you do to get there to begin with? Do you start at 0 with the FG color set to black or in the top border and do some dummy crunch to traverse the graph to the right starting point? 
+
+Was wondering that myself. I guess that's what he means. Im unsure of the benefit of this though, as opposed to simply changing the sprite definition pointer. The sprite hasnt ended, and loops back... so I guess you can change the def and effectively have the sprite "start again". It's still the same sprite though, as opposed to the 17 pixel sprites that are the minimum.
+
+The sprite definition pointer is stored as an 8 bit value that is multiplied by 64 to produce an offset into the selected VIC bank. You don't get per-byte granularity.
+
+So to me this is still a mystery.
+
+Anonymous
+Wed 30-Jan-2019 11:31
+Nice chat. Only one addition: The graph would be more readable if every node on the conventional route was highlighted.
+
+Anonymous
+Mon 14-Feb-2022 19:09
+I love your Demo very much. One of the smoothest animations I ever see on the c64. The music accomplished the scene wonderfully. I like these Rhodes bell sounds with Reverb at the End of Demo of Disk 2 
+
+Great Work ! Thank you for this.
+Markus

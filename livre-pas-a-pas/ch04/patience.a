@@ -1,0 +1,26 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 4 : la patience mesuree
+;
+; On ajoute une attente calibree entre deux stries. Le cout
+; passe de 9 a 20 cycles -> 63 n'est plus un multiple, et les
+; colonnes se changent en escalier. La pente MESURE l'ecart.
+;
+; Assembler :   acme patience.a
+; Lancer :      LOAD"PATIENCE",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "patience.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+        lda #$0b                ; ecran eteint : aucune Bad Line
+        sta $d011               ;   ne viendra brouiller la mesure
+
+boucle  inc $d020               ; 6 cycles
+        ldx #2                  ; 2 cycles : la duree de la patience
+attente dex                     ; 2 cycles a chaque passage
+        bne attente             ; 3 si on repart, 2 la derniere fois
+        jmp boucle              ; 3 cycles
+                                ; total : 6+2+(2+3)+(2+2)+3 = 20 cycles

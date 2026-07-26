@@ -1,0 +1,48 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 5 : la matrice vidéo, à la main
+;
+; Mille casiers à partir de $0400 : un octet déposé = un
+; caractère affiché. Aucun PRINT, aucun appel au système.
+; On peint l'écran entier, puis on écrit trois lettres à la main
+; dans le coin haut-gauche.
+;
+; Assembler :   acme matrice.a
+; Lancer :      LOAD"MATRICE",8,1  puis  RUN
+;               (RUN/STOP + RESTORE pour revenir au BASIC)
+;---------------------------------------------------------------
+!to "matrice.prg", cbm
+
+* = $0801                       ; l'amorce du chapitre 1 : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; le curseur du BASIC ne viendra pas clignoter dessus
+
+; --- les 1000 cellules, en quatre passes de 256 ---
+        ldx #0
+rempli  lda #81                 ; code ÉCRAN 81 : le disque plein
+        sta $0400,x             ; cellules 0 à 255
+        sta $0500,x             ; cellules 256 à 511
+        sta $0600,x             ; cellules 512 à 767
+        sta $06e8,x             ; cellules 744 à 999 (24 de recouvrement)
+        lda #11                 ; 11 : gris foncé
+        sta $d800,x             ; la couleur de la cellule 0, puis 1, puis 2...
+        sta $d900,x
+        sta $da00,x
+        sta $dae8,x
+        dex
+        bne rempli
+
+; --- trois octets à la main : le coin haut-gauche, c'est $0400 ---
+        lda #9                  ; I
+        sta $0400
+        lda #3                  ; C
+        sta $0401
+        lda #9                  ; I
+        sta $0402
+        lda #1                  ; blanc
+        sta $d800               ; ...pour ces trois cellules-là seulement
+        sta $d801
+        sta $d802
+
+fini    jmp fini                ; on s'arrête ici : l'image reste telle quelle

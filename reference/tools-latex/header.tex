@@ -1,0 +1,71 @@
+% — AU CŒUR DU MÉTAL — préambule
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{DejaVu Sans Mono}[Scale=0.78]
+\usepackage{newunicodechar}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{ϕ}{\ensuremath{\phi}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{ᵉ}{\textsuperscript{e}}
+\newunicodechar{ʳ}{\textsuperscript{r}}
+\newunicodechar{Ω}{\ensuremath{\Omega}}
+\newunicodechar{₂}{\textsubscript{2}}
+\newunicodechar{⁻}{\textsuperscript{--}}
+\newunicodechar{⁴}{\textsuperscript{4}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{∧}{\ensuremath{\wedge}}
+\newunicodechar{⌊}{\ensuremath{\lfloor}}
+\newunicodechar{⌋}{\ensuremath{\rfloor}}
+\newunicodechar{①}{\textbf{(1)}}
+\newunicodechar{②}{\textbf{(2)}}
+\newfontfamily\symbolfont{DejaVu Sans}[Scale=0.9]
+\newunicodechar{⚠}{{\symbolfont\color{alert}⚠}}
+\usepackage{xcolor}
+\definecolor{alert}{RGB}{170,30,30}
+\definecolor{c64blue}{RGB}{44,41,177}
+\definecolor{c64lblue}{RGB}{109,106,239}
+\definecolor{linkc}{RGB}{30,60,140}
+\usepackage{geometry}
+\geometry{a4paper,top=2.4cm,bottom=2.6cm,left=2.3cm,right=2.3cm}
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\sffamily\bfseries\color{c64blue}}
+  {}{0pt}{\Huge}[\vspace{2pt}{\color{c64lblue}\titlerule[1.2pt]}]
+\titlespacing*{\chapter}{0pt}{-18pt}{28pt}
+\titleformat*{\section}{\Large\sffamily\bfseries\color{c64blue}}
+\titleformat*{\subsection}{\large\sffamily\bfseries}
+\titleformat*{\subsubsection}{\normalsize\sffamily\bfseries}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily\color{c64blue}Au cœur du métal — C64 \& Ultimate 64}
+\fancyhead[R]{\small\sffamily\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\footnotesize}
+\usepackage{fvextra}
+\fvset{fontsize=\footnotesize,breaklines=true}
+\AtBeginEnvironment{verbatim}{\footnotesize}
+\usepackage{quoting}
+\usepackage{mdframed}
+% citations VERBATIM de source : filet bleu epais, fond blanc (austere = fidele)
+\renewenvironment{quote}
+  {\begin{mdframed}[backgroundcolor=white,linecolor=c64blue,linewidth=2.4pt,
+    topline=false,bottomline=false,rightline=false,skipabove=8pt,skipbelow=8pt]}
+  {\end{mdframed}}
+% encadres pedagogiques « En clair » : fond teinte, filet fin (= notre voix)
+\newenvironment{enclair}
+  {\begin{mdframed}[backgroundcolor=c64lblue!8,linecolor=c64lblue,linewidth=1.2pt,
+    topline=false,bottomline=false,rightline=false,skipabove=8pt,skipbelow=8pt]}
+  {\end{mdframed}}
+\usepackage{microtype}
+\renewcommand{\_}{\textunderscore\allowbreak}
+\setcounter{secnumdepth}{-2}
+\setlength{\parskip}{3pt plus 1pt}

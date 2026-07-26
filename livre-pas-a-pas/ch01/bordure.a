@@ -1,0 +1,25 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 1 : votre premier programme
+;
+; Trois instructions. La bordure devient rouge, et le BASIC
+; reprend la main comme si rien ne s'était passé.
+;
+; Assembler :   acme bordure.a
+; Lancer :      LOAD"BORDURE",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "bordure.prg", cbm
+
+; --- l'amorce : une ligne de BASIC, rangée à la main dans des casiers ---
+* = $0801
+!byte $0b,$08                   ; où commence la ligne SUIVANTE ($080b)
+!byte $0a,$00                   ; le numéro de la ligne : 10
+!byte $9e                       ; le mot SYS, rangé en un seul octet
+!byte $32,$30,$36,$34           ; les caractères "2 0 6 4"
+!byte $00                       ; fin de la ligne
+!byte $00,$00                   ; fin du programme BASIC
+
+; --- notre programme, à l'adresse 2064 ($0810) ---
+* = $0810
+        lda #2                  ; A <- la VALEUR 2 (rouge)
+        sta $d020               ; ...déposée dans le casier-levier de la bordure
+        rts                     ; et on rend la main au BASIC

@@ -1,0 +1,20 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 1 : le plus vite possible
+;
+; Noir, blanc, noir, blanc… aussi vite que la machine en est
+; capable. Vous n'obtiendrez PAS un clignotement.
+;
+; Assembler :   acme stroboscope.a
+; Lancer :      LOAD"STROBOSCOPE",8,1  puis  RUN   (RUN/STOP+RESTORE pour sortir)
+;---------------------------------------------------------------
+!to "stroboscope.prg", cbm
+
+* = $0801                       ; l'amorce du chapitre : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+boucle  lda #0                  ; noir
+        sta $d020
+        lda #1                  ; blanc
+        sta $d020
+        jmp boucle              ; et on recommence, sans jamais s'arrêter

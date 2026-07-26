@@ -1,0 +1,20 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 4 : le chronometre visuel
+;
+; Deux instructions. Chaque increment de couleur marque
+; 9 cycles ecoules -> l'ecran devient un chronographe.
+;
+; Assembler :   acme chrono.a
+; Lancer :      LOAD"CHRONO",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "chrono.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+
+boucle  inc $d020               ; 6 cycles : couleur de bordure + 1
+        jmp boucle              ; 3 cycles : et on recommence
+                                ; 9 cycles par strie = 72 pixels

@@ -1,0 +1,49 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 7 : l'ecran qui tombe (FLD)
+;
+; On empeche la Bad Line de survenir : le VIC ne lit plus de
+; nouvelle ligne de texte, l'affichage reste suspendu, et tout
+; le contenu semble tomber de N lignes.
+;
+; Assembler :   acme chute.a
+; Lancer :      LOAD"CHUTE",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "chute.prg", cbm
+
+DEPART  = $32                   ; ligne ou commence la chute (50)
+FIN     = $5a                   ; ligne ou on rend la main (90) -> 40 lignes
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+
+; --- attendre le haut de l'ecran ---
+trame   lda $d012
+        cmp #DEPART
+        bne trame
+
+; --- pendant N lignes : deplacer le cran pour que l'egalite n'arrive JAMAIS ---
+chute   ldx $d012               ; 4 : la ligne en cours
+        lda cran,x              ; 4 : un cran interdit pour les DEUX lignes qui viennent
+        sta $d011               ; 4 : plus de Bad Line
+        lda $d012               ; 4 : sommes-nous au bout ?
+        cmp #FIN                ; 2
+        bne chute               ; 3 -> 21 cycles par tour, 3 tours par ligne
+
+; --- on rend la main : les Bad Lines reprennent, l'ecran reprend sa lecture ---
+        lda #$1b                ; cran 3, ecran allume, 25 lignes
+        sta $d011
+        jmp trame               ; et on recommence a la trame suivante
+
+; --- la table des crans « interdits » ---
+; Pour la ligne i, on ecrit (i+2) & 7 : ni i&7 (sinon Bad Line tout de
+; suite), ni (i+1)&7 — car la valeur ecrite pendant la ligne i doit encore
+; etre sure au tout debut de la ligne i+1, avant que notre boucle n'ait eu
+; le temps de la remplacer. Le « +2 » achete cette marge.
+!align 255, 0
+cran
+!for i, 0, 255 {
+    !byte $18 | ((i + 2) & 7)   ; $18 = ecran allume + 25 lignes
+}

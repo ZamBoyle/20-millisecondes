@@ -1,0 +1,51 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 3 : la bande-annonce, enfin lisible
+;
+; Une couleur prevue d'avance pour chaque ligne de l'ecran.
+; C'est le programme du chapitre 0, et vous connaissez
+; maintenant chacune de ses instructions.
+;
+; Assembler :   acme degrade.a
+; Lancer :      LOAD"DEGRADE",8,1  puis  RUN
+;---------------------------------------------------------------
+!to "degrade.prg", cbm
+
+* = $0801                       ; 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence
+
+boucle  ldx $d012               ; 4 cycles : X <- la ligne en cours
+        lda couleurs,x          ; 4 cycles : la couleur prevue pour CETTE ligne
+        sta $d020               ; 4 cycles : bordure
+        sta $d021               ; 4 cycles : fond
+        jmp boucle              ; 3 cycles : et on recommence
+                                ; total : 19 cycles par tour de boucle
+
+; --- la table : une couleur par ligne ---
+; !align garantit qu'elle commence au debut d'une page de 256 octets :
+; sans ca, « lda couleurs,x » couterait parfois 5 cycles au lieu de 4,
+; et notre boucle ne battrait plus regulierement.
+!align 255, 0
+
+; une vague de 16 teintes : sombre -> claire -> sombre
+!macro vague { !byte 0,6,6,4,14,3,13,1,1,13,3,14,4,6,6,0 }
+
+couleurs                        ; 16 vagues = 256 lignes
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague
+        +vague

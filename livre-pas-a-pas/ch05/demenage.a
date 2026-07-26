@@ -1,0 +1,54 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 5 : l'écran déménage
+;
+; On bâtit une SECONDE matrice vidéo en $2000, invisible.
+; Puis une seule écriture dans $d018 dit au VIC d'aller lire
+; là-bas : l'écran change d'un coup, sans qu'un seul caractère
+; affiché ait été réécrit.
+;
+; Assembler :   acme demenage.a
+; Lancer :      LOAD"DEMENAGE",8,1  puis  RUN
+;               (RUN/STOP + RESTORE pour revenir au BASIC)
+;---------------------------------------------------------------
+!to "demenage.prg", cbm
+
+* = $0801                       ; l'amorce du chapitre 1 : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; personne ne vient nous déranger
+
+; --- 1. la deuxième matrice, en $2000 : personne ne la regarde encore ---
+        ldx #0
+mur     lda #81                 ; le même disque plein qu'au listing précédent
+        sta $2000,x             ; cellules 0 à 255
+        sta $2100,x             ; cellules 256 à 511
+        sta $2200,x             ; cellules 512 à 767
+        sta $22e8,x             ; cellules 744 à 999
+        lda #11                 ; gris foncé
+        sta $d800,x             ; la couleur, elle, reste où elle a toujours été
+        sta $d900,x
+        sta $da00,x
+        sta $dae8,x
+        dex
+        bne mur
+
+; --- 2. sept lettres, chacune à sa place : X compte, Y désigne ---
+        ldx #7
+mot     ldy places,x            ; Y <- le numéro de cellule où va la lettre
+        lda lettres,x           ; A <- son code écran
+        sta $2000,y             ; la lettre, dans la matrice n° 2...
+        lda #1                  ; blanc
+        sta $d800,y             ; ...sa couleur, dans la Color RAM (qui n'a pas bougé)
+        dex
+        bne mot
+
+; --- 3. une seule écriture, et le VIC va lire ailleurs ---
+        lda #132                ; 128 = matrice en $2000 ; 4 = caractères en $1000
+        sta $d018
+
+fini    jmp fini                ; on s'arrête ici : l'image reste telle quelle
+
+; La case 0 des deux tables n'est jamais lue : la boucle s'arrête à X=1.
+places  !byte 0,  0, 41, 82, 123, 164, 205, 246   ; une diagonale, une cellule par ligne
+lettres !byte 0, 13,  1, 20,  18,   9,   3,   5   ; M A T R I C E

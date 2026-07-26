@@ -1,0 +1,105 @@
+;---------------------------------------------------------------
+; 20 MILLISECONDES — chapitre 6 : les huit voleurs
+;
+; Le chronomètre visuel du chapitre 4 (inc en boucle), élargi au
+; fond de l'écran et calé sur 21 cycles — avec les huit sprites
+; posés en travers du milieu de l'image. Regardez les colonnes
+; de couleur à hauteur des créatures.
+;
+; Assembler :   acme voleurs.a
+; Lancer :      LOAD"VOLEURS",8,1  puis  RUN
+;               (RUN/STOP + RESTORE pour sortir)
+;---------------------------------------------------------------
+!to "voleurs.prg", cbm
+
+* = $0801                       ; l'amorce du chapitre 1 : 10 SYS 2064
+!byte $0b,$08,$0a,$00,$9e,$32,$30,$36,$34,$00,$00,$00
+
+* = $0810
+        sei                     ; silence : plus personne ne nous interrompt
+
+        lda #dessin / 64        ; les huit pointeurs sur le même dessin
+        sta $07f8
+        sta $07f9
+        sta $07fa
+        sta $07fb
+        sta $07fc
+        sta $07fd
+        sta $07fe
+        sta $07ff
+
+        lda #140                ; même Y : les huit sur la même rangée
+        sta $d001
+        sta $d003
+        sta $d005
+        sta $d007
+        sta $d009
+        sta $d00b
+        sta $d00d
+        sta $d00f
+
+        lda #60                 ; les X, un par un
+        sta $d000
+        lda #92
+        sta $d002
+        lda #124
+        sta $d004
+        lda #156
+        sta $d006
+        lda #188
+        sta $d008
+        lda #220
+        sta $d00a
+        lda #252
+        sta $d00c
+        lda #28                 ; le huitième : 284 = 256 + 28
+        sta $d00e
+        lda #%10000000
+        sta $d010
+
+        lda #0                  ; les huit en NOIR : seule couleur qui tranche
+        sta $d027               ;   sur un fond qui parcourt les 16 teintes
+        sta $d028
+        sta $d029
+        sta $d02a
+        sta $d02b
+        sta $d02c
+        sta $d02d
+        sta $d02e
+
+        lda #%11111111          ; les huit allumés
+        sta $d015
+
+        ; --- le chronomètre : 6 + 6 + 6 + 3 = 21 cycles par tour,
+        ;     et 21 x 3 = 63 = la ligne entière. Motif bien vertical.
+boucle  inc $d020               ; 6 cycles — la bordure change de couleur
+        inc $d021               ; 6 cycles — le fond aussi
+        inc $d020               ; 6 cycles — la bordure encore
+        jmp boucle              ; 3 cycles — et on recommence
+
+;---------------------------------------------------------------
+; Le même dessin, au même endroit.
+;---------------------------------------------------------------
+* = $0a00
+dessin
+        !byte %00000000,%01111110,%00000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000111,%11111111,%11100000
+        !byte %00001111,%11111111,%11110000
+        !byte %00011100,%01111110,%00011100
+        !byte %00011100,%01111110,%00011100
+        !byte %00111100,%01111110,%00111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111111,%11111111,%11111100
+        !byte %00111110,%11111111,%01111100
+        !byte %00011111,%00000000,%11111000
+        !byte %00011111,%11111111,%11111000
+        !byte %00001111,%11111111,%11110000
+        !byte %00000111,%11111111,%11100000
+        !byte %00000011,%11111111,%11000000
+        !byte %00000001,%11111111,%10000000
+        !byte %00000000,%01111110,%00000000
