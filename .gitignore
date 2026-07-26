@@ -6,3 +6,8 @@
 *.log
 *.out
 *.toc
+
+# le LaTeX intermediaire est un produit, jamais une source
+*.tex
+!tools/*.tex
+!reference/tools-latex/**/*.tex
