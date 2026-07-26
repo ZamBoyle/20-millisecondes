@@ -39,16 +39,6 @@ Le livre s'impose deux autres contraintes, qui font sa forme :
 
 ---
 
-## Ce que le lecteur fabrique en chemin
-
-| | |
-|---|---|
-| ![une bande de couleur immobile](livre-pas-a-pas/ch02/bande-hw.png) | **Chapitre 2** — une bande de couleur parfaitement immobile, obtenue en guettant le faisceau. Le C64 ne sait pas dessiner de rectangle : il connaît les instants. |
-| ![la Bad Line visible](livre-pas-a-pas/ch04/badline-hw.png) | **Chapitre 4** — un chronomètre à l'écran, où l'on voit le processeur se faire voler quarante cycles une ligne sur huit. Mesuré dans la capture : 0,29 changement de couleur contre 4 à 5 partout ailleurs. |
-| ![le FLI](livre-pas-a-pas/ch09/fli-hw.png) | **Chapitre 9** — le FLI : 192 lignes ayant chacune ses propres couleurs, là où la fiche technique en promet 24. Avec sa cicatrice de 24 pixels à gauche, que personne n'a jamais su effacer. |
-
----
-
 ## La structure du projet
 
 ```
@@ -125,17 +115,19 @@ l'appui.
 
 ## La galerie
 
-Les dix-huit écrans du livre, tous capturés sur la sortie vidéo d'une machine réelle.
+Le livre tient dans ces dix-neuf écrans. Chacun a été produit par le programme du chapitre,
+assemblé et exécuté sur une machine réelle, puis capturé sur sa sortie vidéo. Pris dans
+l'ordre, ils dessinent le chemin du livre — de trois instructions à la maîtrise du cycle.
 
 | | | |
 |---|---|---|
-| ![](livre-pas-a-pas/ch00/teaser-hw.png)<br>**0** · la bande-annonce | ![](livre-pas-a-pas/ch01/bordure-hw.png)<br>**1** · bordure rouge | ![](livre-pas-a-pas/ch01/stroboscope-hw.png)<br>**1** · le stroboscope |
-| ![](livre-pas-a-pas/ch02/bande-hw.png)<br>**2** · la bande immobile | ![](livre-pas-a-pas/ch03/degrade-hw.png)<br>**3** · une couleur par ligne | ![](livre-pas-a-pas/ch04/badline-hw.png)<br>**4** · la Bad Line, visible |
-| ![](livre-pas-a-pas/ch04/eteint-hw.png)<br>**4** · écran éteint, plus de vol | ![](livre-pas-a-pas/ch04/patience-hw.png)<br>**4** · l'escalier à −24 px | ![](livre-pas-a-pas/ch04/chrono-hw.png)<br>**4** · le chronomètre en bordure |
-| ![](livre-pas-a-pas/ch05/matrice-hw.png)<br>**5** · écrire dans l'écran | ![](livre-pas-a-pas/ch05/demenage-hw.png)<br>**5** · l'écran déménage | ![](livre-pas-a-pas/ch06/unsprite-hw.png)<br>**6** · une créature |
-| ![](livre-pas-a-pas/ch06/huit-hw.png)<br>**6** · les huit en rang | ![](livre-pas-a-pas/ch06/voleurs-hw.png)<br>**6** · les huit voleurs | ![](livre-pas-a-pas/ch07/chute-hw.png)<br>**7** · l'écran tombe |
-| ![](livre-pas-a-pas/ch08/sansbord-hw.png)<br>**8** · plus de bordure | ![](livre-pas-a-pas/ch08/fantome-hw.png)<br>**8** · l'octet fantôme | ![](livre-pas-a-pas/ch09/flirate-hw.png)<br>**9** · l'échec, à 48 lignes |
-| ![](livre-pas-a-pas/ch09/fli-hw.png)<br>**9** · le FLI, 192 lignes | | |
+| ![](livre-pas-a-pas/ch00/teaser-hw.png) **0 · la bande-annonce**<br><sub>Six instructions, une couleur par ligne. On ne la comprend pas encore : c'est la destination.</sub> | ![](livre-pas-a-pas/ch01/bordure-hw.png) **1 · bordure rouge**<br><sub>Le premier programme du lecteur. Trois instructions, et le `READY.` revient.</sub> | ![](livre-pas-a-pas/ch01/stroboscope-hw.png) **1 · le stroboscope**<br><sub>Changer de couleur le plus vite possible ne donne pas un clignotement, mais des rayures : le faisceau est plus lent que nous.</sub> |
+| ![](livre-pas-a-pas/ch02/bande-hw.png) **2 · la bande immobile**<br><sub>En guettant le faisceau. Le C64 ne connaît pas les rectangles, il connaît les instants.</sub> | ![](livre-pas-a-pas/ch03/degrade-hw.png) **3 · une couleur par ligne**<br><sub>Une table calculée d'avance, lue à l'index de la ligne courante. Le motif signature du livre.</sub> | ![](livre-pas-a-pas/ch04/badline-hw.png) **4 · la Bad Line, à l'œil nu**<br><sub>Une ligne sur huit, le processeur est gelé : 0,29 changement de couleur contre 4 à 5 ailleurs.</sub> |
+| ![](livre-pas-a-pas/ch04/eteint-hw.png) **4 · la contre-épreuve**<br><sub>Écran éteint : plus rien à lire, plus aucun vol. Six frontières par ligne, dérive nulle.</sub> | ![](livre-pas-a-pas/ch04/patience-hw.png) **4 · l'escalier prédit**<br><sub>Une attente calibrée, et 63 mod 20 = 3 cycles : le décalage mesuré vaut −24 pixels par ligne.</sub> | ![](livre-pas-a-pas/ch04/chrono-hw.png) **4 · le chronomètre en bordure**<br><sub>La première version : chaque strie marque neuf cycles écoulés.</sub> |
+| ![](livre-pas-a-pas/ch05/matrice-hw.png) **5 · écrire dans l'écran**<br><sub>Mille casiers, un octet par caractère. Sans `PRINT`, sans le système.</sub> | ![](livre-pas-a-pas/ch05/demenage-hw.png) **5 · l'écran déménage**<br><sub>Une seconde matrice bâtie en secret, puis une seule écriture : l'écran n'est qu'une adresse.</sub> | ![](livre-pas-a-pas/ch06/unsprite-hw.png) **6 · une créature**<br><sub>24 × 21 pixels dessinés avec des 0 et des 1, posés au pixel près par-dessus le texte.</sub> |
+| ![](livre-pas-a-pas/ch06/huit-hw.png) **6 · les huit en rang**<br><sub>Un seul dessin en mémoire, huit exemplaires à l'écran, huit couleurs.</sub> | ![](livre-pas-a-pas/ch06/voleurs-hw.png) **6 · les huit voleurs**<br><sub>Les mêmes, posés en travers du chronomètre : on voit les cycles qu'ils prennent.</sub> | ![](livre-pas-a-pas/ch07/chute-hw.png) **7 · l'écran tombe**<br><sub>En empêchant la Bad Line, le VIC ne lit plus rien : tout descend de quarante lignes.</sub> |
+| ![](livre-pas-a-pas/ch08/sansbord-hw.png) **8 · plus de bordure**<br><sub>Deux comparaisons esquivées, et le cadre n'a plus lieu. La créature flotte où l'écran n'existe pas.</sub> | ![](livre-pas-a-pas/ch08/fantome-hw.png) **8 · l'octet fantôme**<br><sub>Ce que le VIC affiche quand il n'a rien à lire : un seul casier de mémoire, répété à l'infini.</sub> | ![](livre-pas-a-pas/ch09/flirate-hw.png) **9 · l'échec, gardé exprès**<br><sub>Quarante-huit lignes justes, puis l'effondrement. L'erreur n'était pas dans le calcul mais dans l'hypothèse.</sub> |
+| ![](livre-pas-a-pas/ch09/fli-hw.png) **9 · le FLI**<br><sub>192 lignes ayant chacune ses propres couleurs, là où la machine en promet 24. Et sa cicatrice de 24 pixels, que personne n'a jamais su effacer.</sub> | | |
 
 ---
 
