@@ -92,6 +92,32 @@ existent : **redessiner** les diagrammes à partir de nos propres mesures, ou **
 l'autorisation** aux auteurs — ils sont joignables, et l'esprit de cette communauté est
 généreux.
 
+### « Mais c'est vieux, non ? » — l'âge ne change rien
+
+C'est le contresens le plus répandu, et il vaut la peine d'être levé : **ce n'est pas l'âge du
+document qui compte, c'est la vie de son auteur.** La durée est de **70 ans après la mort de
+l'auteur** (art. L123-1 du code de la propriété intellectuelle, et règle harmonisée dans toute
+l'Union européenne).
+
+- Les documents de **1992-1994** — Mäkelä, Ojala, Åkesson, Bauer — ont été écrits par des
+  informaticiens de la génération démo, **aujourd'hui vivants**. S'ils vivent jusqu'en 2060,
+  leurs textes seront protégés jusqu'en **2130**. Un article de trente ans est, en droit
+  d'auteur, un texte tout neuf.
+- Le manuel **Commodore de 1982** est une œuvre d'entreprise : 70 ans après publication dans
+  l'UE (**2052**), 95 ans aux États-Unis (**2077**).
+
+Et « abandonware » n'est pas une catégorie juridique : c'est une tolérance, pas un droit.
+
+**Mais rien de tout cela ne nous gêne**, parce que ce dont un livre technique a besoin n'est
+pas protégé et ne l'a jamais été : **les faits**. Une adresse de registre, un compte de cycles,
+la règle des trois conditions de la Bad Line — ce sont des données et des méthodes, pas des
+œuvres. Seule leur *expression* est protégée. On peut donc tout dire, à condition de le dire
+avec ses propres mots : c'est précisément ce que le livre a fait, et c'est mesurable.
+
+Et pour ce qui dépasse le fait — un chronogramme entier, une table complète —, le chemin est
+plus court qu'un procès en domaine public : **un courriel**. Ces auteurs sont vivants,
+joignables, et ils ont écrit ces textes pour qu'on s'en serve.
+
 **En cas de publication du dépôt, retirez ce dossier** et remplacez-le par la liste des
 adresses où chacun se télécharge — elles figurent déjà dans la section « Sources » du livre.
 
