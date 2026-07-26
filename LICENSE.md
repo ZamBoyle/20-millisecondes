@@ -70,10 +70,27 @@ du livre. Leurs statuts diffèrent et plusieurs sont explicitement réservés :
   Machines — All rights reserved. No part of this publication may be reproduced… without the
   prior written permission » ;
 - *Mapping the Commodore 64* (Sheldon Leemon) est un ouvrage commercial, diffusé ici sous
-  forme d'e-text ;
-- les autres (Bauer, Mäkelä, West, Ojala, Åkesson, Lorenz, Hable, Zweijtzer, datasheet MOS)
-  ont chacun leurs propres conditions, généralement favorables à la diffusion, mais que nous
-  n'avons pas le droit de relicencier.
+  forme d'e-text par le projet de préservation **Project 64**, dont le préambule ne concède
+  aucun droit : il décline toute garantie et renvoie explicitement à la licence du document
+  d'origine (« Please refer to the warantee of the original document ») ;
+- **les autres ne portent aucune mention de licence.** Vérifié fichier par fichier : les
+  chronogrammes de Mäkelä (*pal.timing*), l'article d'Ojala (*Missing Cycles*, C=Hacking n°3)
+  et la page d'Åkesson (*MISC*) ne contiennent **ni copyright, ni permission, ni condition**.
+  Le *64doc* de West et Mäkelä, lui, renvoie à un fichier que nous n'avons pas : « This file
+  is part of Commodore 64 emulator… **See README for copyright notice** ».
+
+**Silence ne veut pas dire domaine public.** Sans mention explicite, une œuvre reste protégée
+par défaut (convention de Berne). Ces documents circulent librement dans la communauté depuis
+trente ans, et leurs auteurs les ont manifestement écrits pour être lus et utilisés — mais
+c'est un **usage**, pas une licence. Reproduire un chronogramme entier ou une table complète
+va au-delà de la courte citation ; s'en servir pour *établir un fait* et le réécrire avec ses
+propres mots, non.
+
+C'est exactement la ligne que suit « 20 millisecondes » : il prend les faits, il n'emprunte
+pas une phrase. Si le volume de référence devait un jour être publié, deux chemins honnêtes
+existent : **redessiner** les diagrammes à partir de nos propres mesures, ou **demander
+l'autorisation** aux auteurs — ils sont joignables, et l'esprit de cette communauté est
+généreux.
 
 **En cas de publication du dépôt, retirez ce dossier** et remplacez-le par la liste des
 adresses où chacun se télécharge — elles figurent déjà dans la section « Sources » du livre.
