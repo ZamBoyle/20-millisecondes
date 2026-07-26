@@ -1,3 +1,4 @@
+.gitignore
 # binaires assembles (reconstruits par acme a la demande)
 *.prg
 
