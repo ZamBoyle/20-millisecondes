@@ -68,7 +68,13 @@ du livre. Leurs statuts diffèrent et plusieurs sont explicitement réservés :
 
 - le *Commodore 64 Programmer's Reference Guide* porte « Copyright © 1982 Commodore Business
   Machines — All rights reserved. No part of this publication may be reproduced… without the
-  prior written permission » ;
+  prior written permission ». Mesuré, ce qu'on lui a repris se réduit pourtant à **des
+  tableaux de nombres** : les durées d'attaque et de déclin du SID (68 mots), et rien
+  d'autre — pas une phrase de prose. Idem pour la datasheet du 6581 : la **table des notes**
+  (fréquence, valeur de registre), 63 mots de chiffres. Et **rien du tout** n'a été repris du
+  désassemblage des ROM. Or une durée en millisecondes ou la valeur qui produit un la 440 ne
+  sont pas des créations : ce sont des mesures dictées par le silicium et par la gamme
+  tempérée. Le risque, ici, est donc bien plus faible qu'il n'y paraît ;
 - *Mapping the Commodore 64* (Sheldon Leemon) est un ouvrage commercial, diffusé ici sous
   forme d'e-text par le projet de préservation **Project 64**, dont le préambule ne concède
   aucun droit : il décline toute garantie et renvoie explicitement à la licence du document
@@ -142,7 +148,7 @@ aux quatorze documents du corpus, séquence de huit mots par séquence de huit m
 
 | | Passages identiques trouvés |
 |---|---|
-| **20 millisecondes** (26 773 mots) | **20** — et ce sont uniquement les **titres des ouvrages cités** dans la bibliographie |
+| **20 millisecondes** (26 773 mots) | **20** — et ce sont uniquement les **titres des ouvrages cités** dans la bibliographie. Face aux documents Commodore (manuel de 1982, datasheet SID, ROM désassemblées) : **zéro** |
 | *Au cœur du métal* (30 001 mots), pour comparaison | 2 077 — surtout des tableaux, chronogrammes et listings reproduits en citation |
 
 Autrement dit : **pas une phrase du livre « 20 millisecondes » ne vient d'ailleurs.** Les
