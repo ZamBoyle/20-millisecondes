@@ -694,10 +694,6 @@ couleurs                        ; 16 vagues = 256 lignes
         +vague
 ```
 
-Notez au passage `sta $0400,x` : le mode indexé du chapitre 3 fonctionne aussi **en
-écriture**. « La case n° X de la table » sert à ranger comme à charger — c'est ce qui rend une
-boucle de remplissage aussi courte.
-
 Deux mots sur les dernières lignes, qui ne sont pas des instructions. `!macro` et `+vague`
 sont des commodités de l'assembleur : on décrit une vague de seize teintes, on la réclame
 seize fois, l'assembleur écrit les 256 octets.
@@ -1088,6 +1084,10 @@ dessine ce qu'il y trouve, cinquante fois par seconde, que vous les ayez remplis
 
 Notre boucle mérite un mot, parce qu'elle est un classique absolu et que sa
 petite bizarrerie est délibérée.
+
+Notez au passage `sta $0400,x` : le mode indexé du chapitre 3 fonctionne aussi **en
+écriture**. « La case n° X de la table » sert à ranger comme à charger — c'est ce qui rend une
+boucle de remplissage aussi courte.
 
 Un registre d'index tient un nombre de 0 à 255 : une passe de boucle ne peut donc couvrir
 que 256 casiers. Mille casiers, ça fait quatre passes — mais 4 × 256 = **1024**, soit

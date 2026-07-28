@@ -12,3 +12,6 @@
 *.tex
 !tools/*.tex
 !reference/tools-latex/**/*.tex
+
+# notes de travail, hors depot
+corrections.md
