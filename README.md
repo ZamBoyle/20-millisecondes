@@ -1,3 +1,5 @@
+🇫🇷 **Français** · [🇬🇧 English](README.en.md)
+
 # 20 MILLISECONDES
 
 ### *une image de Commodore 64, cycle par cycle*
@@ -53,6 +55,7 @@ Le livre s'impose deux autres contraintes, qui font sa forme :
 ├── 20-MILLISECONDS.md         l'édition anglaise (traduction)
 ├── 20-MILLISECONDS.pdf        son rendu (66 pages)
 ├── README.md                  ce fichier
+├── README.en.md               la même page, en anglais
 ├── LICENSE.md                 les licences
 │
 ├── livre-pas-a-pas/           UN DOSSIER PAR CHAPITRE
