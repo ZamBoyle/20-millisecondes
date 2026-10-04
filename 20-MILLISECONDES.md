@@ -2019,6 +2019,8 @@ FIN     = $5a                   ; ligne ou on rend la main (90) -> 40 lignes
 
 * = $0810
         sei                     ; silence
+        lda #0                  ; ce que le VIC relira au repos, en $3fff :
+        sta $3fff               ;   zero, donc aucune rayure noire
 
 ; --- attendre le haut de l'ecran ---
 trame   lda $d012
@@ -2085,9 +2087,11 @@ constantes `FIN` et `DEPART`. Changez `FIN`, la chute change d'autant.
 
 Et le vide au-dessus ? Ce n'est pas du noir, ni un rideau : c'est le VIC qui, privé de
 nouvelle ligne de texte, entre dans ce que la documentation appelle son **état de repos**.
-Il continue de lire consciencieusement une adresse, toujours la même, et traite ce qu'il y
-trouve comme si tous les pixels étaient éteints. D'où la couleur de fond, uniforme,
-proprement affichée. Le VIC n'a pas « rien fait » : il a affiché du vide avec application.
+Il continue de lire consciencieusement une adresse, toujours la même — l'octet `$3fff` — et en affiche
+les bits comme des pixels, sans plus aucune couleur venue de la matrice, qu'il ne lit plus : en mode
+texte, un bit à 1 sort noir, un bit à 0 sort couleur de fond. C'est pourquoi notre programme commence
+par ranger **zéro** dans cet octet : la bande est alors uniforme, couleur de fond, proprement
+affichée. Si l'octet contenait autre chose, des rayures noires apparaîtraient à la place du fond uni. Le VIC n'a pas « rien fait » : il a affiché du vide avec application.
 
 ## Ce que vous venez d'acquérir
 

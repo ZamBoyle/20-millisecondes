@@ -18,6 +18,8 @@ FIN     = $5a                   ; ligne ou on rend la main (90) -> 40 lignes
 
 * = $0810
         sei                     ; silence
+        lda #0                  ; ce que le VIC relira au repos, en $3fff :
+        sta $3fff               ;   zero, donc aucune rayure noire
 
 ; --- attendre le haut de l'ecran ---
 trame   lda $d012

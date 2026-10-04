@@ -2022,6 +2022,8 @@ FIN     = $5a                   ; line where we hand back control (90) -> 40 lin
 
 * = $0810
         sei                     ; silence
+        lda #0                  ; what the VIC will re-read at rest, at $3fff:
+        sta $3fff               ;   zero, hence no black stripes
 
 ; --- wait for the top of the screen ---
 trame   lda $d012
@@ -2088,9 +2090,11 @@ constants `FIN` and `DEPART`. Change `FIN`, and the fall changes by the same amo
 
 And the emptiness above? It is not black, nor a curtain: it is the VIC which, deprived of a
 new line of text, enters what the documentation calls its **idle state**.
-It keeps conscientiously reading one address, always the same, and treats what it
-finds there as if all the pixels were off. Hence the uniform background color,
-neatly displayed. The VIC did not "do nothing": it displayed emptiness with diligence.
+It keeps conscientiously reading one address, always the same — the byte `$3fff` — and displays its
+bits as pixels, with no more color coming from the matrix, which it no longer reads: in text mode,
+a 1 bit comes out black, a 0 bit comes out as background color. That is why our program starts by
+storing **zero** in that byte: the band is then uniform, background color, neatly displayed. Had the
+byte held anything else, black stripes would appear in place of the plain background. The VIC did not "do nothing": it displayed emptiness with diligence.
 
 ## What you have just gained
 
