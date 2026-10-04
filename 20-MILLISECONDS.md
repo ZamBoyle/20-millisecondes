@@ -66,7 +66,7 @@ machine lives in these lockers.
 
 **The single corridor: the bus.** To read or write a locker, you have to take the
 corridor that leads to the storeroom. And this corridor has only one lane: *one* access at
-a time, about one per microsecond. Remember this corridor. Half of this book — and the
+a time, about two per microsecond. Remember this corridor. Half of this book — and the
 finest tricks of the Commodore 64 — are stories about the corridor.
 
 **The two craftsmen.** Two workers labor in the workshop, and they don't have the same
@@ -127,8 +127,7 @@ You need two tools, free and available on every system:
   book was tested on real metal.
 - **ACME**, the assembler — the translator that turns a source text into an
   executable program. Only one command to know: `acme file.a`. Take **version 0.95 or
-  later** (this book was assembled with 0.97): earlier versions don't
-  know the form of loop used in chapters 7 and 9.
+  later** (this book was assembled with 0.97): the form of loop used in chapters 7 and 9 has only existed since 0.94.12, and 0.95 is a margin of caution.
 
 All the programs in this book are provided alongside it, one folder per chapter
 (`ch00/`, `ch01/`…), with the screenshot that each one actually produced. You can
@@ -182,7 +181,7 @@ couleurs                        ; 256 lines = 16 waves
 ```
 
 Assemble it (`acme teaser.a`), run the resulting `teaser.prg` (drag it onto the
-VICE window, or `LOAD"TEASER",8,1` then `RUN` on a real machine).
+VICE window, or `LOAD"TEASER",8,1` then `RUN` on a real machine). This program never stops: to get control back, press `RUN/STOP` + `RESTORE` (or reset the emulator); chapter 2 comes back to it.
 
 **What you observe:**
 
@@ -240,11 +239,11 @@ It is precisely this stripped-down quality that will give you control of time, i
 
 ## The first four
 
-The processor has three little cells of its own — one byte each — in which
+The processor has three little working cells of its own — one byte each — in which
 it holds what it is working on right now. They are called **registers**: A, X and
 Y. A is the working register, the accumulator; X and Y will wait for chapters 3 and 5.
 Everything the 6510 does consists of loading a byte into a register, fiddling with it, then
-dropping it somewhere.
+dropping it somewhere. (The 6510 has other registers too, for housekeeping, that we will not have to handle; and the word will be used again, further on, for the chips' lockers, `$d020` for example.)
 
 > **New instruction — `LDA` ("LoaD A")**: puts a byte in register
 > A. `lda #2` loads **the value 2**. `lda $d020` loads **the contents of locker `$d020`**.
@@ -260,7 +259,7 @@ A word or two on this `$d020` notation. The `$` announces a number in **hexadeci
 counted in bundles of sixteen instead of ten. It's not an insiders' affectation:
 the machine is built on bundles of bits, and in hexadecimal the boundaries
 come out round. `$d020`, `$d021`, `$d022`… visibly follow one another, whereas 53280, 53281,
-53282 evoke nothing. You have nothing to convert in your head: read `$d020` as a
+53282 evoke nothing. The digits for 10 through 15 are written `a`, `b`, `c`, `d`, `e`, `f`: `$0a` is 10, `$ff` is 255. You have nothing to convert in your head: read `$d020` as a
 proper name, the name of the border's locker.
 
 > **New instruction — `JMP` ("JuMP")**: continues execution elsewhere.
@@ -374,7 +373,7 @@ boucle  lda #0                  ; black
 ```
 
 Your intuition says: the border will flicker — probably too fast for the eye, so it
-will look gray. Run it.
+will look gray. Run it. This one never stops either: to get control back, `RUN/STOP` + `RESTORE`, as with the trailer.
 
 **What you observe:**
 
@@ -382,8 +381,7 @@ will look gray. Run it.
 
 *Real capture. The border is neither black, nor white, nor gray: it is **striped**.*
 
-Stripes. Not a flicker, not a uniform gray: black and white bands
-perfectly drawn, motionless. Look at them closely, they contain everything this
+Stripes. Not a flicker, not a uniform gray: black and white bands neatly drawn, regular within each frame. They are not motionless for all that: across three captures taken a few seconds apart during a single run, 18 to 26% of the pixels differ. Look at them closely, they contain everything this
 book has to say.
 
 What you see is a **race** between two things moving at roughly the same
@@ -418,7 +416,7 @@ motionless, placed exactly where we have decided.
 ## The question
 
 Our stripes from chapter 1 were pretty, but we had no say in them. We want to decide: a band of
-color, here, at this height, standing still. For that, we need to know where the beam is.
+color, here, at this height, standing still. For that, we need to know where the beam is. In passing, the word in the title: a **frame** is one complete picture of the screen, drawn in twenty milliseconds.
 
 ## What the beam does, in twenty milliseconds
 
@@ -471,11 +469,11 @@ cursor, advance its internal clock. More than two hundred microseconds stolen �
 > **New instruction — `SEI` ("SEt Interrupt disable")**: closes the door. After
 > `sei`, nobody interrupts our program anymore. The keyboard stops responding (`RUN/STOP`
 > included) — to get control back, you will need `RUN/STOP` + `RESTORE`, which goes through
-> another door, or power off. That is the price of silence, and every program in this book
+> another door, or power off. That is the price of silence, and, from here on, every program in this book that loops forever
 > pays it.
 
 > **New instruction — `CMP` ("CoMPare")**: compares register A with a
-> value, without modifying anything. `cmp #$80` asks: "Is A equal to 128?"
+> value, without changing A. It only remembers the result (equal or not), which the next instruction can look at. `cmp #$80` asks: "Is A equal to 128?"
 
 > **New instruction — `BNE` ("Branch if Not Equal")**: jumps
 > if the last result was **not** zero. After a `cmp`, "zero" means "equal":
@@ -552,9 +550,9 @@ In other words: we now know how to aim at a line. We do not yet know how to aim 
 **place within** the line. And that is where all the tricks of the Commodore 64 hide.
 
 > **Under the hood** — the number of lines and cycles for each variant of the chip (PAL,
-> NTSC, and their revisions), the exact dimensions of the display window, and the
-> ninth bit of the line counter are in *Au cœur du métal — Commodore 64 & Ultimate
-> 64*, chapter 1, §4; the interrupt mechanism that replaces our watching is in §14.
+> NTSC, and their revisions) and the exact dimensions of the display window are in
+> *Au cœur du métal — Commodore 64 & Ultimate 64*, chapter 1, §4; the ninth bit of the
+> line counter is in §2; the interrupt mechanism that replaces our watching is in §14.
 
 ## Next chapter
 
@@ -606,7 +604,7 @@ guessed: they are wired into the processor, published, and verifiable to the cyc
 | `lda couleurs,x` | load cell no. X of a table | 4 cycles |
 | `sta $d020` | store into a locker | 4 cycles |
 | `cmp #$80` | compare with a value | 2 cycles |
-| `bne boucle` | jump if different | 2 cycles if not taken, 3 if taken |
+| `bne boucle` | jump if different | 2 cycles if not taken, 3 if taken (4 if the target is on another page) |
 | `jmp boucle` | jump | 3 cycles |
 | `sei` | close the door on interrupts | 2 cycles |
 
@@ -614,8 +612,7 @@ Let's take the watch loop from chapter 2 with this grid in hand: `lda $d012` (4)
 and `bne` (3 when it loops) make **9 cycles per turn of the watch**. Nine cycles is 72 pixels.
 
 That explains the botched seam: when our loop finally notices the arrival of line
-160, the beam may already have advanced nine cycles into that line. And between writing
-the border and writing the background, it advances another 6 cycles — the 2 of the `lda #$06` and the 4
+160, the beam may already have advanced nine cycles into that line. Between that read and writing the border, it advances another 10 cycles — the `cmp` (2), the `bne` that is not taken (2), the `lda #$0e` (2) and the `sta` (4). And between writing the border and writing the background, it advances another 6 cycles — the 2 of the `lda #$06` and the 4
 of the `sta`: forty-eight pixels. Our band could not switch right at the left edge.
 It switched where the machine was.
 
@@ -720,8 +717,7 @@ paid one line of assembler to buy regularity.
 ![Regular waves of color, one shade per line — real capture on a C64 Ultimate](livre-pas-a-pas/ch03/degrade-hw.png)
 
 *Real capture. Compare with the trailer from chapter 0: these are the same six
-instructions, give or take one line — the one in chapter 0 had no `!align`, and that is
-precisely why its waves were a bit messier than these.*
+instructions, give or take one line — the one in chapter 0 had no `!align`, so its table crossed a page for lines 224 to 255, at the bottom of the screen, where the turn cost 20 cycles instead of 19.*
 
 ## The geometry of the tears
 
@@ -821,10 +817,7 @@ across its whole width.
 
 This is not an impression — and here I switch to "I," because what follows is no longer
 a shared line of reasoning but a check that I made, with the machine switched on, and which you
-should be able to doubt. So I counted the color changes, line by line, in the
-capture above: ordinary lines show 4 to 5 (some of the stripes fall
-outside the visible frame), and one line in eight shows **0.29 on average**. One in eight,
-our program did not have time to do anything at all.
+should be able to doubt. So I looked, line by line, in the capture above, for lines of a single color across the whole width of the window: below the text area there are thirteen of them, exactly one every eight lines, and no others. One in eight, the processor has only 20 to 23 cycles left out of 63, and almost none of them fall inside the display window: on that line, our program changes practically nothing of what you see.
 
 ## What happened in the corridor
 
@@ -839,8 +832,7 @@ close.
 
 So it does what an artist under a merciless contract is entitled to do: it **raises its
 hand**. A signal (electronics people call it BA, *Bus Available*) warns the
-processor three cycles ahead. The 6510 cleanly finishes the move in progress, then
-freezes — not "it slows down": it stops, completely. The VIC then takes the **whole**
+processor three cycles ahead. The 6510 can still finish its writes, but as soon as it wants to read it freezes, even in the middle of an instruction — not "it slows down": it stops, completely. The VIC then takes the **whole**
 corridor, for itself alone, for **40 to 43 cycles**. Out of the 63 that the line lasts.
 
 This is what C64 programmers call a **Bad Line** — a "bad line."
@@ -849,10 +841,10 @@ Without it, the screen would be empty.
 
 When does it occur? Every eight lines, since a character is eight pixels tall:
 once the line of text has been read, the VIC has enough to last eight scan lines. More
-precisely, it occurs when the **last three bits of the line number** match
+precisely, it occurs when the **last three bits of the line number** (in other words, the remainder of its division by 8) match
 the **vertical scroll value** — a setting with eight positions, stored in the locker `$d011`, which normally serves to slide the picture
 vertically by zero to seven pixels. Its default value is 3. And indeed, in the capture
-above, the knocked-out lines are the ones whose number ends in 3.
+above, the knocked-out lines are the ones whose number leaves a remainder of 3 when divided by 8 (51, 59, 67…).
 
 Hold on to that last sentence. The fact that the Bad Line depends on a register that **we
 can write** is the most consequential secret of the whole machine: it is the
@@ -865,9 +857,8 @@ has to read characters, then **by switching the display off, they must
 disappear**.
 
 The locker `$d011` happens to contain a "screen on" switch. Its usual value
-is `$1b`; by writing `$0b`, we switch the display off. (This locker holds eight independent
-switches and will come back in chapters 7, 8 and 9: the appendix gives them one by one, with the five
-values that this book writes into it.) — the VIC has nothing left to read, nothing
+is `$1b`, give or take the ninth bit of the line number (the system writes `$9b` into it); by writing `$0b`, we switch the display off. (This locker holds eight independent
+switches and will come back in chapters 7, 8 and 9: the appendix gives them one by one, with the values that this book writes into it.) — the VIC has nothing left to read, nothing
 left to display, and the whole screen becomes border.
 
 ```asm6502
@@ -1080,7 +1071,7 @@ brings a **map**.
 Nothing else: no display command, no protocol. The VIC reads these thousand lockers and
 draws what it finds there, fifty times a second, whether you have filled them or not.
 
-## The old hand's elegance: 1000 lockers in four passes of 256
+## The old hand's elegance: 1000 lockers in four blocks of 256
 
 Our loop deserves a word, because it is an absolute classic and its
 little oddity is deliberate.
@@ -1089,8 +1080,8 @@ Note in passing `sta $0400,x`: the indexed mode from chapter 3 also works **for
 writing**. "Slot number X of the table" serves to store as well as to load — which is what makes a
 fill loop so short.
 
-An index register holds a number from 0 to 255: one pass of the loop can therefore cover
-only 256 lockers. A thousand lockers makes four passes — but 4 × 256 = **1024**, which is
+An index register holds a number from 0 to 255: one indexed `sta` can therefore cover
+only 256 lockers. A thousand lockers makes four blocks, hence four `sta`s per turn of the loop — but 4 × 256 = **1024**, which is
 **24 lockers too many**. If the fourth block started at `$0700`, it would overflow by 24
 lockers *after* the end of the screen (`$07e8`–`$07ff`), which is precisely where the VIC
 will go looking for something else in the next chapter. So we start the fourth block 24
@@ -1104,11 +1095,11 @@ Let's check, because this book never asks you to take anything on faith: `$06e8`
 
 Two details of the loop are worth stopping for:
 
-- **Why two `lda` per pass?** Because the A register holds only one value at a
+- **Why two `lda` per turn?** Because the A register holds only one value at a
   time. It needs the character code for the four `sta`s of the matrix, then the color
-  for the next four. A is a single bucket: we fill it twice per pass.
+  for the next four. A is a single bucket: we fill it twice per turn.
 - **Why `ldx #0` and not `ldx #255`?** Because `dex` takes X from 0 to 255 (it
-  "wraps around from below"): the first pass handles cell 0, then 255, 254... down to
+  "wraps around from below"): the first turn handles cell 0, then 255, 254... down to
   1, where `bne` stops branching. All 256 values get their turn, in a strange order of no
   importance whatsoever.
 
@@ -1139,10 +1130,7 @@ for good. Remember that: in a few pages we will move the screen, and it will sta
 right where it is.
 
 And the trap, which has cost generations of beginners their time: **a character
-dropped in without its color can be perfectly invisible.** The screen-clearing routine
-copies the current **background color** into the thousand color lockers; a character
-written afterwards into the matrix, without touching Color RAM, is drawn in blue on blue —
-it is there, the VIC displays it faithfully, and you see nothing. The only way to
+dropped in without its color can be perfectly invisible.** Its color is whatever its cell already held, and nothing guarantees it is readable. The screen-clearing routine fills the thousand color lockers with the **cursor color** — light blue at startup; we measured it on this machine: with the cursor set to green before clearing, the characters come out green. A character written afterwards into the matrix, without touching Color RAM, is therefore visible. But if the cell already holds the background color — because you set the cursor to blue before clearing, or because an earlier program painted it — the character is drawn in blue on blue: it is there, the VIC displays it faithfully, and you see nothing. The only way to
 know what color your character will come out is **to write it yourself**.
 
 ## These thousand bytes are the Bad Line's loot
@@ -1163,7 +1151,7 @@ anyway, the last chapters will turn it into an instrument.
 ## Second experiment — the screen is just an address
 
 A naive question, and yet: *why* `$0400`? What, in this machine, knows
-that the screen is there? One register, just one: `$d018`. The VIC reads two answers in it.
+that the screen is there? One register, just one: `$d018` (at least within the 16 KB bank where the VIC works by default; changing that is a matter for chapter 9). The VIC reads two answers in it.
 
 | Bits of `$d018` | What they designate | Step |
 |---|---|---|
@@ -1315,15 +1303,13 @@ explains the strangest line in the listing:
 Two `sta`s, the same Y, two memory regions that have nothing to do with each other — and a single cell on
 the screen. You have just written, in assembly, the display routine of the Commodore 64.
 
-One honest admission to finish. When our `sta $d018` executes, the beam is in the middle of
-the frame, and the rows above it have already had their Bad Line: their forty codes
+One honest admission to finish. When our `sta $d018` executes, the beam is somewhere in the frame (the program does not watch for it: the instant of the `RUN` decides), and the rows above it have already had their Bad Line: their forty codes
 come from the **old** matrix. The switch therefore moves down the screen **one text row
 at a time**, at the pace of the Bad Lines, and it is finished by the end of one frame:
 twenty milliseconds. That is why the eye only sees one clean change — and that is
 why a program that wrote `$d018` several times *in the same frame* would display
 **two different matrices on the same screen**, one above, the other below. Pulling
-that off requires knowing *where* the beam is to the cycle: that is the program of
-chapters 7 and 9.
+that off requires knowing *where* the beam is: to the line when cutting the screen between two text rows, since the matrix is only re-read at the Bad Lines; to the cycle once you change matrices on every scan line — that is the FLI of chapter 9.
 
 > **Under the hood** — this whole chapter is the gentle version of four sections of *Au cœur
 > du métal — Commodore 64 & Ultimate 64*, chapter 1: the video matrix and the two kinds
@@ -1834,7 +1820,7 @@ dessin
 
 **What you observe:**
 
-![The whole screen, borders included, covered in fine horizontal stripes arranged in large vertical blocks; the block boundaries are perfectly vertical in the top border, climb in small steps in the display area, and make a sharp sideways jump over the twenty or so lines of the eight black sprites — real capture](livre-pas-a-pas/ch06/voleurs-hw.png)
+![The whole screen, borders included, covered in fine horizontal stripes arranged in large vertical blocks; the block boundaries are perfectly vertical in the top border, stay vertical in the display area (except under the sprites, where they advance in steps of eight pixels), and make a sharp sideways jump over the twenty or so lines of the eight black sprites — real capture](livre-pas-a-pas/ch06/voleurs-hw.png)
 
 The entire screen has become a stopwatch: fine horizontal stripes (the color
 advances a little on each line) cut by **large vertical boundaries**, each
@@ -1846,31 +1832,18 @@ VIC is still working — it reads idly, it even fetches the pointers of the eigh
 nothing. The processor keeps its 63 cycles, and the 21-cycle loop lands in the same place
 on every line, to the pixel.
 
-**In the display area, the boundaries climb in small steps.** A step of **eight
-pixels — one cycle — every eight lines**: this is chapter 4's Bad Line,
-unflappable. Why such a small step, when a Bad Line steals some forty
-cycles? Because our stopwatch doesn't measure the theft: it measures what **exceeds**
-a whole number of turns, and a single hand doesn't count the turns. That remainder can be
-calculated, and it lets us tighten the measurement — provided we are honest about what it proves.
-A one-cycle step tells us only that the cycles left to the processor land **within one
-cycle of a multiple of 21**: that could be 20, 22, 41, 43… The corresponding theft would then be
-43, 41, 22 or 20 cycles. Let's cross-check with what the documentation says — a Bad Line takes
-between 40 and 43 cycles — and only **two** remain: 41 or 43.
+**In the display area, the boundaries stay vertical almost everywhere.** The Bad Lines do steal cycles there, but the loop lands in the same place on every line: no step appears. The small steps exist only over one stretch, just below the band of creatures: six steps of **eight pixels — one cycle**, one per Bad Line, all toward the right. We ran the program three times: the pattern is the same each time.
 
-We won't know which, and that is just fine: the lesson is right there. A measurement
-alone left four possibilities, a documented range alone left four as well
-(40, 41, 42, 43), and the two together leave only two. We gained precision without
-making anyone say more than they know — and to decide between 41 and 43, we would need an
-instrument finer than a screen capture.
+Why such a small step, when a Bad Line steals some forty cycles? Because our stopwatch doesn't measure the theft: it measures what **exceeds** a whole number of turns, and a single hand doesn't count the turns. That remainder can still be read, and it lets us tighten the measurement — provided we are honest about what it proves. A boundary that doesn't move: the theft is an exact multiple of 21 cycles. A one-cycle step to the right: the theft exceeds a multiple of 21 by one cycle. Let's cross-check with what the documentation says — a Bad Line takes between 40 and 43 cycles — and each case has only one answer left: **42** where nothing moves, **43** where the boundary advances one step. (A step to the left would have given 41.)
+
+That is how a plain screen capture yields a number: each source alone left several possibilities, and together they leave only one. One caveat, though: this is the measurement of a single machine, on this one program.
 
 Above all, remember what this range means: **the theft is not a fixed number.** It
 depends on where the processor was in its instruction when the VIC raised
 its hand. The same Bad Line doesn't cost quite the same thing from one line to the next — and in
 chapter 9, this small irregularity will decide the fate of three programs.
 
-**And on the band of the creatures, the whole pattern is pushed sideways by one block.** No more
-small steps: a sharp shift, on the order of a hundred pixels, over about
-twenty lines — the twenty-one of the drawing, plus one just above. The sprites,
+**And on the band of the creatures, the whole pattern is pushed sideways by one block.** No more aligned boundaries: a sharp shift over about twenty lines — the twenty-one of the drawing, plus one just above. The sprites,
 motionless, silent, without a single instruction of their own, have just stolen time from the processor.
 
 ## The explanation — what a sprite really costs
@@ -1897,9 +1870,7 @@ Note the range: the primary sources don't agree to the cycle, and they say
 so. With this kind of number, honesty is an interval, not a value.
 
 And now, check. The beam covers **8 pixels per cycle**: 14 to 17 stolen cycles
-make 112 to 136 pixels of shift, exactly the order of magnitude of the jump
-before your eyes. You have just read a cycle theft directly on the screen, with
-a graduated ruler and nothing else. Here, finally, is the machine's worst case, the one every
+make 112 to 136 pixels of shift — but our stopwatch has a period of 21 cycles, that is 168 pixels, and it only shows the remainder. On the capture, at the bottom of the band of creatures, the boundary is shifted 48 pixels to the left (from 113 to 65), that is 120 pixels to the right, give or take 168: 15 cycles, in the middle of the range. You have just read a cycle theft directly on the screen, with a graduated ruler and a little arithmetic. Here, finally, is the machine's worst case, the one every
 demo programmer knows by heart: **a Bad Line that also carries all eight sprites leaves
 only 4 to 7 cycles to the processor**. Out of sixty-three. Enough room for two short
 instructions, no more: this is the absolute limit of the Commodore 64, and it is against
@@ -1907,17 +1878,14 @@ it that ambitious effects break.
 
 Two clarifications on the exact shape of what you see. **Twenty-two lines and not
 twenty-one**, because the VIC reads ahead of the phase: the data of sprites 3 to 7
-are read at cycles 1 to 9 of the line where they are displayed (the appendix, at the end of the book, gives
+are read between cycles 1 and 10 of the line where they are displayed (the appendix, at the end of the book, gives
 the complete map of the 63 cycles of a line), but those of sprites 0, 1 and
-2 at cycles 58, 60 and 62 — **in the previous line**. And if the whole pattern of the line
-is shifted, not just the piece located behind the creatures, it is because those cycles
-fall outside the image (the line return on the left, the extreme right edge): the
-processor takes its delay **before** entering the visible part and keeps it until
-the end. We don't see the theft, we see its effect.
+2 between cycles 58 and 63 — **in the previous line**. And if the whole pattern of the line
+is shifted, not just the piece located behind the creatures, it is because most of those cycles fall outside the visible part (the start of the line, before the first pixel; the extreme right edge): the processor takes most of its delay **before** entering the visible part and keeps it until the end. We don't see the theft, we see its effect.
 
-One last curiosity, counter-intuitive and verified: **switching off a sprite "in the middle" gives
+One last curiosity, counter-intuitive, documented by Pasi Ojala and measured on this machine: **switching off a sprite "in the middle" gives
 back no cycle**. Switch off sprite 4 while all eight are active (`lda $d015` /
-`and #%11101111` / `sta $d015`): the pattern doesn't move by a pixel, because during the slot
+`and #%11101111` / `sta $d015`): the pattern, on either side of the band, doesn't move by a pixel, because during the slot
 that sprite 4 would have occupied, the VIC is already announcing that it wants the bus for sprite 5. The
 windows are contiguous; to win back time, you have to free a **range** of
 neighboring slots, not a random sprite. Eight free objects, then — but in a
@@ -2084,9 +2052,7 @@ the complete value to write.
 *Real capture. The text is intact, in its place in memory — it is its reading that was
 suspended for forty lines.*
 
-Measured on the capture: the first row of text, which normally starts at line
-43, starts here at line 83. **Exactly forty lines** — the difference between our
-constants `FIN` and `DEPART`. Change `FIN`, and the fall changes by the same amount.
+Measured on the capture (lines counted from the top of the capture; add 16 to get the raster line, the kind `DEPART` and `FIN` use): the first row containing text, the BASIC title, which normally starts at line 43, starts here at line 83. **Exactly forty lines**: reading resumed only at the first Bad Line after `FIN`, raster line 91 instead of 51. Change `FIN`, and the fall changes too, but in steps of eight lines: a row can only restart on a Bad Line, hence on a line whose last three bits equal 3, the setting that `$1b` restores.
 
 And the emptiness above? It is not black, nor a curtain: it is the VIC which, deprived of a
 new line of text, enters what the documentation calls its **idle state**.
@@ -2100,12 +2066,11 @@ byte held anything else, black stripes would appear in place of the plain backgr
 
 Take the measure of the change. Up to chapter 6, we wrote into lockers to
 tell the machine *what* to display. Here, for the first time, we wrote into a
-locker to tell it *when* — and we obtained an effect that its hardware offers
-nowhere: a vertical scroll of the whole screen, at almost no cost, without moving a
+locker to tell it *when* — and we obtained an effect that the scroll register, limited to seven pixels, cannot give: making the whole screen fall forty lines, without moving a
 byte of memory.
 
 That is the very definition of C64 tricks. You do not find a hidden function: you
-observe a rule ("the bookmark only advances on a Bad Line"), you notice that one of its
+observe a rule ("without a Bad Line, no new row is read"), you notice that one of its
 ingredients is under our control, and you use it at the wrong time.
 
 > **Under the hood** — the exact mechanism (the VC and RC counters, the reset of the
@@ -2300,8 +2265,7 @@ top and 37 at the bottom.
 
 Why the top as well? Reread the two rules. The bottom comparison **sets** the flip-flop to
 1; the top comparison **resets** it to 0. We prevented the setting to 1; so there is
-nothing left to reset to 0 at the top of the next image. The switch stayed at 0
-from one end to the other. We wanted to open a door, we opened the whole corridor — and that is
+nothing left to reset to 0 at the top of the next image. The top-and-bottom switch stayed at 0 from one end to the other; the left and right bands, still there in the capture, come from other comparisons, on X, that we did not touch. We wanted to open a door, we opened the whole corridor — and that is
 logical, not magic.
 
 ## The ghost byte
@@ -2400,7 +2364,7 @@ switch between them on every line. Eight are enough, because, counting lines fro
 eight different matrices.
 
 **Second obstacle: there is one precise moment to act.** The write that creates the Bad Line must
-not arrive before **cycle 14** of the line. Any earlier, and the VIC resets its pixel-row
+not arrive before **cycle 14** of the line (the cycles of a line are numbered from 1 to 63; the map is in the appendix, page "The 63 Cycles of a Line"). Any earlier, and the VIC resets its pixel-row
 counter: it would redisplay the same row of pixels forever. You
 will see this accident with your own eyes in a moment — I ran into it twice.
 
@@ -2449,7 +2413,7 @@ rate    lda t11x,x              ; 4 : "the scroll value of the line I THINK I am
         bne rate                ; 3 -> 23 cycles
 ```
 
-These two tables `t11x` and `t18x` are those of the final version, shifted by one; the
+These two tables `t11x` and `t18x` have the contents of those of the final version, with two differences: `t11x` sets the window to 25 rows instead of 24 (`$38` instead of `$30`), and both are stored in the order the X counter rereads them, from 200 down to 1, not by line number; the
 complete program is in the supplied file `flirate.a`, if you want to reproduce the failure.
 And here is what it produces on screen — because you have to see it to understand what follows:
 
@@ -2476,7 +2440,7 @@ by an `lda table,x`, exactly like the trailer in chapter 0. But its effect is
 now entirely different: the loop is **self-correcting**. If a shift occurs, the next
 pass reads the true line and writes the true value. There is no more drift possible,
 because there is nothing left to drift — no internal state, no assumption, just
-a question put to the machine, 15,000 times a second.
+a question put to the machine, on every pass of the loop — more than twenty thousand times a second.
 
 And notice why this form holds up when the other two gave way: since the
 Bad Line's theft is not constant, **no fixed-rate loop can follow the
@@ -2503,8 +2467,7 @@ for eight matrices and a bitmap; so we move its gaze to the bank
 backwards** — writing `%10` selects bank no. 1. And a cascading consequence, which
 is a good question to ask yourself: the ghost byte from chapter 8 lived at `$3fff`, the
 last address *seen by the VIC*. In bank 1, that same seen address becomes `$7fff`
-in real memory. That is therefore where our zero must be written — I had started by
-getting it wrong.
+in real memory. That is therefore where the ghost byte lives here; we write our zero there, out of habit carried over from chapter 8 — I had started by getting it wrong. (In bitmap mode, the idle state displays black anyway, and the border stays closed in this program.)
 
 **`$30` in `$d011`.** The locker with eight switches (appendix, reference page): here
 the **graphics** mode switch is on, the display is on, the window is set to **24
@@ -2517,9 +2480,7 @@ from 0 to 15 into the top four bits of the byte. It is exactly the "multiplied b
 chapter 5, written differently. And it is precisely these four bits that tell the VIC **where** the
 matrix is: writing the matrix number there is enough to change it. Two nuances compared to
 chapter 5, where we did the same thing: this number is now counted **from the start of
-the bank** (matrix no. 1 is at `$4400`, not `$0400`), and the bottom three bits, which
-designated the character generator in text mode, designate the **bitmap** in graphics
-mode. The `| 8` turns on the one that places it in the middle of the bank, at `$6000`.
+the bank** (matrix no. 1 is at `$4400`, not `$0400`), and the middle three bits (bits 3, 2 and 1), which designated the character generator in text mode, shrink in graphics mode to a single one, bit 3, which designates the **bitmap**. The `| 8` turns it on: it places the bitmap in the middle of the bank, at `$6000`.
 
 ## The experiment
 
@@ -2589,13 +2550,13 @@ computed in advance costs nothing at display time*.
 
 **What you observe:**
 
-![The whole screen covered with a diagonal rainbow gradient, a different color on every line, with a vertical gray band 24 pixels wide on the left — real capture on C64 Ultimate](livre-pas-a-pas/ch09/fli-hw.png)
+![The whole screen covered with a diagonal rainbow gradient, a color pattern shifted by one cell on every line, with a vertical gray band 24 pixels wide on the left — real capture on C64 Ultimate](livre-pas-a-pas/ch09/fli-hw.png)
 
-*Real capture. One hundred ninety-two lines, each with its own colors — what the
+*Real capture. One hundred ninety-two lines, each with its own sequence of colors — what the
 Commodore 64's spec sheet declares impossible.*
 
 I checked on the machine rather than ask you to take my word: **all 192 lines** of the
-window each display 16 different colors, and two neighboring lines do not have the same ones.
+window each display all 16 colors, and two neighboring lines never present them in the same order: the pattern slides by one cell on each line.
 Where normal graphics mode would give 24 rows of colors, we have 192.
 
 ## The scar
@@ -2610,8 +2571,7 @@ wired into the silicon, with no waiver possible. Three of the forty cells theref
 too late: the VIC, doors closed, reads `$ff` instead of your colors. Three cells, eight
 pixels each: **24 pixels**. I measured the band in the capture — it is exactly 24 pixels wide.
 
-The reference documentation, after explaining this mechanism, concludes with a
-laconic sentence: *there is no way around that*. There is no workaround. Every
+The reference documentation remarks, in passing, about this three-cycle delay: *there is no way around that*. There is no workaround. Every
 FLI picture in the history of the Commodore 64 bears this scar; artists got
 into the habit of hiding it under a black column, or of working around it. It is,
 literally, the trademark of the trick.
@@ -2772,9 +2732,7 @@ paragraph of the last chapter: **in a Commodore 64, time belongs to the video ch
 One last accessory, and it deserves the detour because it moves the question of the corridor.
 
 The **REU** — *RAM Expansion Unit* — is a memory expansion that Commodore was already selling back
-then: 128 kilobytes on the 1700, 256 on the 1764, 512 on the 1750, expandable to
-several megabytes. Its peculiarity is that the processor **cannot address it**. It
-appears nowhere among the 65,536 lockers of chapter 0.
+then: 128 kilobytes on the 1700, 256 on the 1764, 512 on the 1750 — the maximum of the original controller; clones can go well beyond. Its peculiarity is that the processor **cannot address it**. Its memory appears nowhere among the 65,536 lockers of chapter 0: only its command registers appear there.
 
 How is it accessed, then? By a **freight elevator**. The REU contains its own
 controller, which moves blocks of bytes between the C64's memory and its own — in one
@@ -2842,8 +2800,7 @@ times a second, and nobody to tell you what to do with them.
 
 This book chose to explain each thing only at the moment it becomes useful. That is good
 for learning, less handy for programming: three chapters in, you find yourself hunting for "the
-number of light red" or "which bit turns the screen off". Here, gathered in one place, is everything
-the book's programs use.
+number of light red" or "which bit turns the screen off". Here, gathered in one place, is most of what the book's programs use.
 
 ## The Sixteen Colors
 
@@ -2867,7 +2824,7 @@ book use the decimal form for small numbers and the hexadecimal form when it mak
 structure easier to read.
 
 At power-up, the machine shows blue (6) on a light blue (14) border — those are the two
-values our programs put back in place when they hand control back.
+values the KERNAL puts back in place (at power-up, or with `RUN/STOP` + `RESTORE`) and that the chapter 2 band rewrites after it passes.
 
 ## The Eight Switches of `$d011`
 
@@ -2883,7 +2840,7 @@ byte, eight independent switches.
 | 3 | RSEL | window height: 1 = 25 rows, 0 = 24 (chapter 8) |
 | 2–0 | YSCROLL | **the vertical scroll value**, from 0 to 7 (chapters 4, 7, 9) |
 
-Hence the five values that keep coming back in the listings:
+Hence the values that keep coming back in the listings:
 
 | Value | In binary | What it means |
 |---|---|---|
@@ -2906,17 +2863,16 @@ later. At eight pixels per cycle, this numbering is also a position on the scree
 
 | Cycles | What the VIC does |
 |---|---|
-| 1, 3, 5, 7, 9 | it fetches the data for sprites 3 to 7 |
+| 1-2, 3-4, 5-6, 7-8, 9-10 | sprites 3 to 7: the VIC reads the pointer, then the 3 data bytes if the sprite is active (2 cycles per sprite) |
 | 11 to 15 | it refreshes the dynamic memory (an electrical necessity) |
 | 12 to 14 | **if there is a Bad Line**: it announces that it is taking the bus (the three-cycle notice) |
 | 15 to 54 | it takes it for good and reads its 40 cells — this is where the processor is frozen (chapter 4) |
 | 16 to 55 | it reads the pixels to display |
 | 56, 57 | it reads idly (it still reads, but throws the result away) |
-| 58, 60, 62 | it fetches the data for sprites 0, 1 and 2 — **for the next line** |
+| 58-59, 60-61, 62-63 | sprites 0, 1 and 2: pointer, then 3 bytes if the sprite is active — **for the next line** |
 
-Note the offset between the first two rows of this table: the VIC takes the bus
-three cycles before it needs it, because it has to give the processor time to finish
-its stroke. Those three cycles of politeness will explain the scar in chapter 9.
+Note the offset between the rows "12 to 14" and "15 to 54" of this table: the VIC takes the bus
+three cycles before it needs it, because it has to give the processor time to finish its writes in progress. Those three cycles of politeness will explain the scar in chapter 9.
 
 Two consequences that the book uses without proving them again: the write that creates a Bad
 Line must **not happen before cycle 14** (chapter 9 — cycle 14 itself is fine),
@@ -2938,7 +2894,7 @@ given to ACME **while the program is being built**.
 | `!macro name { … }` then `+name` | defines a piece of code and calls for it; the assembler copies it out at every call |
 | `!align 255, 0` | advances to the next address whose 8 low bits are zero, that is, to the start of a 256-byte page (`255` is the mask, `0` the wanted value) |
 
-And three operators, also computed at build time — they are the cousins of the
+And three bit operators, also computed at build time — they are the cousins of the
 `and` and `ora` instructions from chapter 6:
 
 | | |
@@ -2946,6 +2902,8 @@ And three operators, also computed at build time — they are the cousins of the
 | `x & 7` | keeps only the **last three bits** of x (because 7 is written `%00000111`) |
 | `a \| b` | turns on in a the bits that are on in b |
 | `x << 4` | shifts the bits of x four places to the left — so it stores a number from 0 to 15 in the top four bits of the byte |
+
+Ordinary arithmetic (`+`, `*`, `/`) is also computed at build time — here `*` between two numbers is a multiplication, whereas `* =` at the start of a line stands for the current address — and a `%` in front of digits marks a number written in binary.
 
 ## The Thirteen Instructions, and What They Cost
 
@@ -2990,7 +2948,7 @@ Add 128 to any of these codes to get it in reverse video.
 
 No listing in this book touches `$d016`, `$d017`, `$d01b`, `$d01c` or `$d01d`. They
 therefore count on the state the KERNAL installs at power-up and at every reset:
-`$d011` = `$1b`, `$d015` = 0 (no sprite on), `$d016` = `$08`, `$d017` = 0 (no
+`$d011` = `$1b` (the KERNAL writes `$9b` there: bit 7, which sets the raster compare line, has no effect here, and you read back `$1b` as long as the current line is below 256), `$d015` = 0 (no sprite on), `$d016` = `$08`, `$d017` = 0 (no
 vertical stretch), `$d018` = `$14`, `$d01b` = `$d01c` = `$d01d` = 0 (sprites in front of the
 background, a single color, no horizontal stretch), border 14, background 6, and the VIC
 bank on the first 16 kilobytes.
@@ -3023,14 +2981,12 @@ people who took it apart, and it has remained readable.
 ***Au cœur du métal — Commodore 64 & Ultimate 64*** is the reference of which this book is the
 guided tour: every "Under the hood" box points to it by chapter and section.
 
-Two clarifications do it justice. First, **it is not a primary source**: it was
-written *from* the documents listed below. It gathers them, cross-checks them, translates them,
+Two clarifications do it justice. First, **it is not a primary source for its chapters 1 to 6**: they were written *from* the documents listed below. It gathers them, cross-checks them, translates them,
 and anchors each of its claims to the one who attests it — it is a work of compilation
-and verification, not of discovery. When a doubt concerns a cycle, it is to the
+and verification, not of discovery. Its two appendices, however, report **original measurements**, made on a single C64 Ultimate unit, which appear in none of these sources. When a doubt concerns a cycle, it is to the
 sources that you must go back, and it leads you there.
 
-Second, **it has no teaching purpose**, and it owns that: it states the rule, it does not
-explain it. It is to be consulted, not read from cover to cover — a beginner would drown in it
+Second, **it has no teaching purpose**, and it owns that: it states the rule, it hardly explains it. It is to be consulted, not read from cover to cover — a beginner would drown in it
 by the third page. That is precisely why the book you are holding exists. The two
 are complementary and do not do the same job: here the phenomena, hands in the
 grease and permission to be wrong; over there the exact rule, where it comes from, and nothing
@@ -3078,8 +3034,7 @@ observation — the pedagogue child of an austere ancestor.
 ## The Chips This Book Left Alone
 
 - **MOS Technology**, datasheet of the **6581 SID**, 12 pages (archive `6581.zip`, same address).
-- **Wolfgang Lorenz**, *A Software Model of the CIA6526*, version 2.15, May 1997 — the model
-  that served as the basis for most emulators.
+- **Wolfgang Lorenz**, *A Software Model of the CIA6526*, version 2.15, May 1997 — distributed with a test suite that most emulators have since adopted.
 - **Richard Hable**, *Programming the Commodore REU* (files `programming.reu` and
   `reu.registers`, same address) — the freight elevator of chapter 10.
 
