@@ -11,8 +11,12 @@ battements d'horloge. Le livre raconte ce qui se passe pendant **une seule** de 
 zoomant chapitre après chapitre — la trame, la ligne, le cycle — jusqu'à faire faire à la
 machine des choses que ses concepteurs n'avaient pas prévues.
 
-📄 **[20-MILLISECONDES.pdf](20-MILLISECONDES.pdf)** — 65 pages · **[la source
+📄 **[20-MILLISECONDES.pdf](20-MILLISECONDES.pdf)** — 66 pages · **[la source
 markdown](20-MILLISECONDES.md)**
+
+🇬🇧 **English edition** — **[20-MILLISECONDS.pdf](20-MILLISECONDS.pdf)** — 66 pages · **[markdown
+source](20-MILLISECONDS.md)** (translated from the French original with AI assistance; not yet reviewed
+by a bilingual human reader)
 
 ---
 
