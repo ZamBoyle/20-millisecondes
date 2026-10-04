@@ -54,7 +54,7 @@ Le livre s'impose deux autres contraintes, qui font sa forme :
 │   ├── CAHIER-DES-CHARGES.md  le contrat imposé aux rédacteurs (rituel, budget, interdits)
 │   ├── REPRODUCTIBILITE.md    le journal des essais sur matériel (19/19)
 │   ├── ch00/ … ch10/          pour chacun : chapitre.md, les sources .a, les captures -hw.png
-│   └── annexe/                les quatre pages de référence de fin de volume
+│   └── annexe/                les trois pages de référence de fin de volume
 │
 ├── tools/
 │   ├── build_pdf.sh           markdown → LaTeX → PDF
@@ -146,7 +146,7 @@ l'ordre, ils dessinent le chemin du livre — de trois instructions à la maîtr
 | **8** | Ouvrir la bordure |
 | **9** | Le grand final : toutes les couleurs à la fois |
 | **10** | La même machine en 2026 |
-| | *Annexe : quatre pages à garder sous la main · Sources* |
+| | *Annexe : trois pages à garder sous la main · Sources* |
 
 ---
 

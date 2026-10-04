@@ -18,7 +18,7 @@ The contract is the same in every chapter: a **question** you can see on the scr
 **observe**, then the **explanation**. Never the other way around. Theory only arrives
 after your eyes have seen the phenomenon.
 
-One last thing, for the road: the book ends with a **four-page appendix**
+One last thing, for the road: the book ends with a **three-page appendix**
 that gathers what you keep looking up when you program — the sixteen colors, the eight
 switches of the most important register, the map of the 63 cycles of a line, and the
 assembler's notations. Nothing obliges you to read it in advance; just know that it is
@@ -196,8 +196,7 @@ Look closely: the color changes **on every scan line**. Not on every character,
 not on every "cell" — on every line of the beam, 312 times per frame, 50 times a
 second. No "normal" language can do that: the C64's BASIC barely executes
 a few dozen instructions while an *entire* frame is drawn. Here, the
-program converses with the beam *while* it scans — and it uses only six
-instructions.
+program converses with the beam *while* it scans — and it takes only six lines.
 
 You don't yet know how to read `$d012`, nor why the `couleurs` table has 256 entries,
 nor what exactly `sei` forbids. That's the whole promise: **chapter 2** for the
@@ -467,8 +466,7 @@ watching.** You will see that it is more than enough — and that it keeps the p
 
 We do, however, have to silence someone. Sixty times a second, the C64's operating
 system interrupts whatever is running to scan the keyboard, blink the
-cursor, advance its internal clock. Some sixty microseconds stolen, at the worst
-moment: our watch would miss its line.
+cursor, advance its internal clock. More than two hundred microseconds stolen — three and a half screen lines — at the worst moment: our watch would miss its line.
 
 > **New instruction — `SEI` ("SEt Interrupt disable")**: closes the door. After
 > `sei`, nobody interrupts our program anymore. The keyboard stops responding (`RUN/STOP`
@@ -480,7 +478,8 @@ moment: our watch would miss its line.
 > value, without modifying anything. `cmp #$80` asks: "Is A equal to 128?"
 
 > **New instruction — `BNE` ("Branch if Not Equal")**: jumps
-> if the previous comparison was **not** an equality. This is our "while":
+> if the last result was **not** zero. After a `cmp`, "zero" means "equal":
+> `bne` therefore jumps when the comparison found a difference. This is our "while":
 > `cmp #$80` followed by `bne haut` means "while it is not 128, go back to watching."
 
 ## The experiment
@@ -514,7 +513,7 @@ bas     lda $d012
         jmp haut                ; and start over, frame after frame
 ```
 
-Fifteen instructions in all, none of which is new except the three from this chapter. Note
+Fifteen lines in all, with no new instruction except the three from this chapter. Note
 also the pattern to remember, which we will meet everywhere in this book: **load `$d012`,
 compare, loop if it is not yet time.**
 
@@ -539,15 +538,15 @@ it knows moments.
 
 ## The detail that announces the next chapter
 
-Take a closer look at the capture, at the left edge of the band, where the red begins.
-The transition is not perfectly clean: the top line did not switch at exactly
-the same place as the others.
+Take a closer look at the capture, at the left edge of the band, where the red **ends**.
+The transition is not perfectly clean: on the first line below the band, the border has
+already gone back to its light blue, while the background stays red for about twenty more pixels.
 
 This is neither a flaw in the capture nor a flaw in your machine. When our `lda $d012`
-finally reads 128, the beam **is already drawing** line 128: it moved on
+finally reads 160, the beam **is already drawing** line 160: it moved on
 while we were comparing, while we were loading the color, while we were
-writing it. The band therefore begins a few dozen pixels after the left edge —
-where the beam was when our `sta` happened.
+writing it. And we write the border first and the background after — six cycles later,
+which amounts to forty-eight pixels (the next chapter gives the conversion).
 
 In other words: we now know how to aim at a line. We do not yet know how to aim at a
 **place within** the line. And that is where all the tricks of the Commodore 64 hide.
@@ -570,7 +569,7 @@ trailer from chapter 0.
 
 ## The question
 
-In the previous chapter, our band missed its left edge by a few dozen pixels.
+In the previous chapter, the bottom of our band left a misaligned seam of a few dozen pixels.
 We said "the beam moves on while we work." How much, exactly?
 
 It is the most profitable question in the whole book. Answering it means zooming in one
@@ -614,10 +613,11 @@ guessed: they are wired into the processor, published, and verifiable to the cyc
 Let's take the watch loop from chapter 2 with this grid in hand: `lda $d012` (4), `cmp #$80` (2)
 and `bne` (3 when it loops) make **9 cycles per turn of the watch**. Nine cycles is 72 pixels.
 
-That explains the missed edge: when our loop finally notices the arrival of line
-128, the beam may already have advanced nine cycles into that line — and it keeps
-advancing during the 2 cycles of the `lda #$0a` and the 4 of the `sta`. Our band could not
-begin at the left edge. It began where the machine was.
+That explains the botched seam: when our loop finally notices the arrival of line
+160, the beam may already have advanced nine cycles into that line. And between writing
+the border and writing the background, it advances another 6 cycles — the 2 of the `lda #$06` and the 4
+of the `sta`: forty-eight pixels. Our band could not switch right at the left edge.
+It switched where the machine was.
 
 None of this is a flaw. It is the rule of the game, and it is *known in advance*:
 that is exactly why it can be worked around. Chapters 7 to 9 will do nothing
@@ -736,8 +736,7 @@ therefore drifts, line after line: it is this slippage that draws the staircase 
 
 And the three passes within the same line? They all three read the same line
 number, so they write the same color three times: invisible. But the one that straddles the
-line change writes the old color at the start of the new line — hence those
-little offset segments, on the right, at the transitions.
+line change writes the old color at the start of the new line — hence, at the left edge of the transition lines, those little segments that still carry the color of the previous line.
 
 Note the conclusion, which is the program for the next six chapters: **our loop is
 a little slower than it should be, and above all, it is not aligned with the line.**
@@ -917,7 +916,7 @@ One question of method remains: how do you wait for a *chosen* number of cycles?
 watch loops wait for a line; soon we will need to wait "twelve cycles," no more.
 
 > **New instruction — `DEX` ("DEcrement X")**: subtracts 1 from the X register. It costs
-> 2 cycles, and touches nothing else.
+> 2 cycles, and — like `cmp` — notes whether the result is zero: that is what `bne` checks right after.
 
 Paired with `bne`, it gives the most economical countdown on the machine:
 
@@ -1397,8 +1396,7 @@ And that gives a drawing you can read like a drawing, right in the program's sou
 ```
 
 These eight lines are the top of a little round creature: the first five draw a
-widening skull, then two holes of three `0`s carved into the `1`s, one on each side
-— the eyes. The body and a wide open mouth follow the same logic, you will read them
+widening skull, then two holes of `0`s carved into the `1`s, one on each side — the eyes: three `0`s wide on the left, three or four on the right depending on the row, since the drawing is not quite symmetrical. The body and a wide open mouth follow the same logic, you will read them
 in the listing. Take some graph paper, 24 squares by 21, blacken whatever you
 like, copy it line by line: that is the whole craft, including that of the games you
 loved.
@@ -1518,7 +1516,7 @@ dessin
 
 ![A yellow 24x21-pixel creature, motionless in the center of the screen, over the BASIC text — real capture](livre-pas-a-pas/ch06/unsprite-hw.png)
 
-Fifteen instructions, and a yellow creature stands in the middle of the screen. The `rts` handed
+Fifteen lines, and a yellow creature stands in the middle of the screen. The `rts` handed
 control back to BASIC: `READY.` is back, the cursor blinks, the machine is yours — and
 the creature is still there. Try the test that matters: **type**. The text passes
 **behind** it, slides under it, disappears at the top; it doesn't move, doesn't
@@ -1711,7 +1709,7 @@ will shift it. That is our theft detector.
 
 One last adjustment, a cosmetic one: our eight creatures turn **black**. This is not
 a malfunction — it is the only way to still tell them apart. The background now changes
-color every six microseconds and runs through all sixteen shades of the palette; any
+color on every loop turn — about every twenty-one microseconds — and runs through all sixteen shades of the palette; any
 sprite color would drown in it at times. Black, on the other hand, stands out against the
 other fifteen. So you will see eight silhouettes, and that is intended.
 
@@ -1953,7 +1951,7 @@ and start hijacking it. And the first question to ask it is this: we
 know how to make a character appear by writing into a locker. Can we make the
 **whole** screen fall without moving a single byte?
 
-The answer is yes, it fits in a loop of six instructions, and it relies entirely
+The answer is yes, it fits in a loop of six lines, and it relies entirely
 on the Bad Line from chapter 4.
 
 ## The VIC's bookmark
@@ -1998,8 +1996,7 @@ setting?
 The natural reflex would be to write a setting different from the current line — say `(line + 1) & 7`.
 That is wrong, and it is an instructive mistake. Think about what happens while
 line *i* is in progress: our loop writes the setting `(i+1) & 7` there. Then line *i+1*
-begins — and the Bad Line test takes place **at the very start of the line**, before
-our loop has had time to run again. The value still in place is
+begins — and the Bad Line test is redone on every cycle; and in the first cycles of the line, when the VIC decides whether to take over the bus, our loop has not had time to run again. The value still in place is
 `(i+1) & 7`, and the line number is now `i+1`. Equality. Bad Line. Trick failed.
 
 So you must aim **two lines ahead**: write `(i+2) & 7` during line *i*.
@@ -2395,8 +2392,7 @@ rereads exactly the same 40 cells. We would have colors reread 200 times,
 but identical ones! The fix is brutal and elegant: we do not change the data,
 we change **the place where the VIC goes to fetch it**. Remember chapter 5:
 `$d018` says *where* the matrix is. So we prepare **eight matrices** in memory, and we
-switch between them on every line. Eight are enough, because raster line L reads row L/8 of
-matrix number L mod 8 — the eight lines of one row of cells draw from
+switch between them on every line. Eight are enough, because, counting lines from the first Bad Line (raster line 48), line number N reads row N/8 of matrix number N mod 8 — the eight lines of one row of cells draw from
 eight different matrices.
 
 **Second obstacle: there is one precise moment to act.** The write that creates the Bad Line must
@@ -2684,8 +2680,7 @@ what on earth did I run the programs on whose captures you have seen?
 Here we are at the end of the journey, and one question remains that you may have asked yourself
 from the very first page: **where does one find, in 2026, a Commodore 64 to check all this?**
 
-You have read the same caption under every image in this book: *real capture on Ultimate
-64*. That was the promise of chapter 0 — all the screen images are real, each
+You have read the same note under most of the images in this book: *real capture on C64 Ultimate*. That was the promise of the first page — all the screen images are real, each
 produced by the listing printed just above it. The time has come to say what this
 machine is, and above all why it does not cheat.
 
@@ -2705,11 +2700,9 @@ half-microseconds, the signal raised when the artist requisitions the bus. Same 
 same constraints — and, what is most revealing, **same quirks**.
 
 For that is how you unmask a rough imitation: by its flaws. The FLI bug
-from the previous chapter — those twenty-four lost pixels on the left, which the reference documentation
-says "there is no way to recover" — is there, intact, measured on
+from the previous chapter — those twenty-four lost pixels on the left, about which the reference documentation says there is "no way around it" — is there, intact, measured on
 this machine. Better still: there is a display offset so fine, so intimate to the
-VIC's internal workings, that on real chips it varies from one silicon revision
-to another, and even with temperature. On this programmable circuit, it is **deterministic**
+VIC's internal workings, that this kind of behavior is reputed to vary, on real chips, from one silicon revision to another, and even with temperature. On this programmable circuit, it is **deterministic**
 — always the same, measurable once and for all. A machine that merely imitated
 "roughly" would have neither this bug nor this offset. This one has them.
 
@@ -2723,8 +2716,7 @@ machine: check again.
 This machine can do something a 1982 Commodore 64 could not: **speed up
 its processor**. A menu setting, "CPU Speed", is 1 MHz by default; it goes up to
 **48 MHz** on an Ultimate 64 and **64 MHz** on an Elite-II. On the C64 Ultimate of this book,
-the measurement has been made: the highest speed index, written into the locker `$d031` — a
-single byte, four useful bits — gives **a constant 64 MHz** (provided a menu setting
+the measurement has been made: the highest speed index, written into the locker `$d031` — a single byte, four of its bits for the speed index — gives **a constant 64 MHz** (provided a menu setting
 allows the program to touch it). Writing into this locker, by the way, has no effect on
 a real C64: it is an unused VIC register. The same program can therefore politely ask
 for turbo on both machines.
@@ -2752,8 +2744,7 @@ that *forces* Bad Lines therefore pays this price in full, whatever speed is sho
 in the menu.
 
 Do the math for the FLI of chapter 9, and savor it: about 200 forced Bad Lines, at
-43 microseconds each, makes **8.6 milliseconds frozen in a 20-millisecond frame**. The
-processor's useful throughput is roughly **cut in half** — at turbo as at 1 MHz. The
+43 microseconds each, makes **8.6 milliseconds frozen in a 20-millisecond frame**. The processor loses **nearly half** of its time — at turbo as at 1 MHz. The
 title of this book has never been contradicted: everything is still played out in the same twenty
 milliseconds, and you still have to tuck your calculations away in the borders.
 
@@ -2843,7 +2834,7 @@ times a second, and nobody to tell you what to do with them.
 
 ---
 
-# Appendix — Four Pages to Keep at Hand
+# Appendix — Three Pages to Keep at Hand
 
 This book chose to explain each thing only at the moment it becomes useful. That is good
 for learning, less handy for programming: three chapters in, you find yourself hunting for "the
@@ -2970,7 +2961,7 @@ line lasts 63 cycles.
 | `cmp #$80` | compare A with a value | 2 |
 | `and #%11110111` | turn off bits of A | 2 |
 | `ora #%00001000` | turn on bits of A | 2 |
-| `bne boucle` | jump if the comparison was not an equality | 2 if you don't jump, 3 if you do |
+| `bne boucle` | jump if the last result was not zero (after `cmp`: not equal) | 2 if you don't jump, 3 if you do (4 if the target is on another page) |
 | `jmp boucle` | jump | 3 |
 | `sei` | close the door to interrupts | 2 |
 | `rts` | hand control back to whoever called us | 6 |
@@ -2987,7 +2978,7 @@ in the character generator (chapter 5).
 | Code | Character | | Code | Character |
 |---|---|---|---|---|
 | 1 to 26 | the letters A to Z, in order | | 32 | space |
-| 48 to 57 | the digits 0 to 9 | | 81 | a solid disc (the "heart" of old listings) |
+| 48 to 57 | the digits 0 to 9 | | 81 | a solid disc (the "heart" of old listings is code 83) |
 
 Add 128 to any of these codes to get it in reverse video.
 

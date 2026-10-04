@@ -17,7 +17,7 @@ Le contrat est le même à chaque chapitre : une **question** qu'on peut voir à
 **observe**, puis l'**explication**. Jamais l'inverse. La théorie n'arrive qu'après que
 vos yeux ont constaté le phénomène.
 
-Une dernière chose, pour la route : le livre se termine par une **annexe de quatre pages**
+Une dernière chose, pour la route : le livre se termine par une **annexe de trois pages**
 qui rassemble ce qu'on cherche sans arrêt quand on programme — les seize couleurs, les huit
 interrupteurs du registre le plus important, la carte des 63 cycles d'une ligne, et les
 notations de l'assembleur. Rien ne vous oblige à la lire d'avance ; sachez seulement qu'elle
@@ -195,8 +195,7 @@ Regardez bien : la couleur change **à chaque ligne de balayage**. Pas à chaque
 pas à chaque « case » — à chaque ligne du faisceau, 312 fois par image, 50 fois par
 seconde. Aucun langage « normal » ne sait faire ça : le BASIC du C64 exécute à peine
 quelques dizaines d'instructions pendant qu'une image *entière* est dessinée. Ici, le
-programme discute avec le faisceau *pendant* qu'il balaie — et il ne fait que six
-instructions.
+programme discute avec le faisceau *pendant* qu'il balaie — et il tient en six lignes.
 
 Vous ne savez pas encore lire `$d012`, ni pourquoi la table `couleurs` fait 256 entrées,
 ni ce que `sei` interdit exactement. C'est toute la promesse : **chapitre 2** pour le
@@ -466,8 +465,7 @@ c'est amplement suffisant — et que ça garde le programme lisible d'un seul co
 
 Il faut cependant faire taire quelqu'un. Soixante fois par seconde, le système
 d'exploitation du C64 interrompt ce qui tourne pour scruter le clavier, faire clignoter le
-curseur, avancer son horloge interne. Une soixantaine de microsecondes volées, au pire
-moment : notre guet raterait sa ligne.
+curseur, avancer son horloge interne. Plus de deux cents microsecondes volées — trois lignes et demie d'écran — au pire moment : notre guet raterait sa ligne.
 
 > **Nouvelle instruction — `SEI` (« SEt Interrupt disable »)** : ferme la porte. Après
 > `sei`, plus personne n'interrompt notre programme. Le clavier ne répond plus (`RUN/STOP`
@@ -479,7 +477,8 @@ moment : notre guet raterait sa ligne.
 > valeur, sans rien modifier. `cmp #$80` demande : « A vaut-il 128 ? »
 
 > **Nouvelle instruction — `BNE` (« Branch if Not Equal », sauter si différent)** : saute
-> si la comparaison précédente **n'était pas** une égalité. C'est notre « tant que » :
+> si le dernier résultat **n'était pas** zéro. Après un `cmp`, « zéro » veut dire « égal » :
+> `bne` saute donc quand la comparaison a trouvé une différence. C'est notre « tant que » :
 > `cmp #$80` suivi de `bne haut` signifie « tant que ce n'est pas 128, retourne guetter ».
 
 ## L'expérience
@@ -513,7 +512,7 @@ bas     lda $d012
         jmp haut                ; et on recommence, trame apres trame
 ```
 
-Quinze instructions en tout, dont aucune n'est nouvelle sauf les trois du chapitre. Notez
+Quinze lignes en tout, et aucune instruction nouvelle hormis les trois du chapitre. Notez
 aussi le motif à retenir, qu'on retrouvera partout dans ce livre : **charger `$d012`,
 comparer, boucler si ce n'est pas encore l'heure.**
 
@@ -538,15 +537,15 @@ elle connaît les instants.
 
 ## Le détail qui annonce le chapitre suivant
 
-Approchez-vous de la capture, au bord gauche de la bande, à l'endroit où le rouge commence.
-La transition n'est pas parfaitement franche : la ligne du haut n'a pas basculé exactement
-au même endroit que les autres.
+Approchez-vous de la capture, au bord gauche de la bande, à l'endroit où le rouge **s'arrête**.
+La transition n'est pas parfaitement franche : sur la première ligne sous la bande, la bordure
+a déjà repris son bleu clair, alors que le fond, lui, reste rouge sur une vingtaine de pixels.
 
 Ce n'est ni un défaut de la capture, ni un défaut de votre machine. Quand notre `lda $d012`
-lit enfin 128, le faisceau **est déjà en train de dessiner** la ligne 128 : il a avancé
+lit enfin 160, le faisceau **est déjà en train de dessiner** la ligne 160 : il a avancé
 pendant que nous comparions, pendant que nous chargions la couleur, pendant que nous
-l'écrivions. La bande commence donc quelques dizaines de pixels après le bord gauche —
-là où le faisceau se trouvait quand notre `sta` a eu lieu.
+l'écrivions. Et nous écrivons la bordure d'abord, le fond ensuite — six cycles plus tard,
+ce qui représente quarante-huit pixels (le chapitre suivant donne la conversion).
 
 Autrement dit : nous savons désormais viser une ligne. Nous ne savons pas encore viser un
 **endroit dans** la ligne. Or c'est là que se cachent tous les trucages du Commodore 64.
@@ -569,7 +568,7 @@ bande-annonce du chapitre 0.
 
 ## La question
 
-Au chapitre précédent, notre bande a raté son bord gauche de quelques dizaines de pixels.
+Au chapitre précédent, le bas de notre bande a laissé un raccord décalé de quelques dizaines de pixels.
 Nous avons dit « le faisceau avance pendant qu'on travaille ». Combien, exactement ?
 
 C'est la question la plus rentable de tout le livre. Y répondre demande de descendre d'un
@@ -613,10 +612,11 @@ se devinent pas : ils sont câblés dans le processeur, publiés, et vérifiable
 Reprenons le guet du chapitre 2 avec cette grille en main : `lda $d012` (4), `cmp #$80` (2)
 et `bne` (3 quand il boucle) font **9 cycles par tour de guet**. Neuf cycles, c'est 72 pixels.
 
-Voilà l'explication du bord raté : quand notre boucle constate enfin l'arrivée de la ligne
-128, le faisceau peut déjà avoir avancé de neuf cycles dans cette ligne — et il continue
-d'avancer pendant les 2 cycles du `lda #$0a` et les 4 du `sta`. Notre bande ne pouvait pas
-commencer au bord gauche. Elle commençait là où la machine en était.
+Voilà l'explication du raccord raté : quand notre boucle constate enfin l'arrivée de la ligne
+160, le faisceau peut déjà avoir avancé de neuf cycles dans cette ligne. Et entre l'écriture
+de la bordure et celle du fond, il avance encore de 6 cycles — les 2 du `lda #$06` et les 4
+du `sta` : quarante-huit pixels. Notre bande ne pouvait pas basculer pile au bord gauche.
+Elle basculait là où la machine en était.
 
 Rien de tout ceci n'est un défaut. C'est la règle du jeu, et elle est *connue d'avance* :
 c'est exactement pour ça qu'on peut la contourner. Les chapitres 7 à 9 ne feront rien
@@ -735,8 +735,7 @@ donc, ligne après ligne : c'est ce glissement qui dessine l'escalier des bords.
 
 Et les trois passages dans la même ligne ? Ils lisent tous les trois le même numéro de
 ligne, donc écrivent trois fois la même couleur : invisible. Mais celui qui chevauche le
-changement de ligne, lui, écrit l'ancienne couleur au début de la ligne nouvelle — d'où ces
-petits segments décalés, à droite, aux transitions.
+changement de ligne, lui, écrit l'ancienne couleur au début de la ligne nouvelle — d'où, au bord gauche des lignes de transition, ces petits segments qui portent encore la couleur de la ligne précédente.
 
 Notez la conclusion, qui est le programme des six chapitres suivants : **notre boucle est
 un peu plus lente que ce qu'il faudrait, et surtout, elle n'est pas alignée sur la ligne.**
@@ -916,7 +915,7 @@ Reste une question de méthode : comment attend-on un nombre *choisi* de cycles 
 de guet attendent une ligne ; il nous faudra bientôt attendre « douze cycles », pas plus.
 
 > **Nouvelle instruction — `DEX` (« DEcrement X »)** : retire 1 au registre X. Elle coûte
-> 2 cycles, et ne touche à rien d'autre.
+> 2 cycles, et note — comme `cmp` — si le résultat vaut zéro : c'est ce que `bne` consulte juste après.
 
 Associée à `bne`, elle donne le compte-à-rebours le plus économique de la machine :
 
@@ -1154,8 +1153,7 @@ ces 40 lectures (les accès « c ») n'ont pas la place de tenir dans sa demi-mi
 Voilà ce qu'est la Bad Line du chapitre 4 : le processeur gelé une quarantaine de cycles,
 et le VIC qui emporte **les 40 octets de la rangée en cours**. Le vol est double,
 d'ailleurs : chaque accès « c » ramène **12 bits** d'un coup, 8 bits de la matrice et 4
-bits de la Color RAM, par un bus élargi exprès pour ça. Et il ne se répète que huit lignes
-sur huit : entre deux Bad Lines, le VIC travaille sur une **copie interne** de quarante
+bits de la Color RAM, par un bus élargi exprès pour ça. Et il ne se répète qu'une ligne sur huit : entre deux Bad Lines, le VIC travaille sur une **copie interne** de quarante
 codes et quarante couleurs, si bien qu'un caractère déposé dans la matrice n'existe pour
 lui qu'à la prochaine Bad Line de sa rangée. À l'œil, c'est instantané ; retenez quand
 même la phrase, les derniers chapitres en feront un instrument.
@@ -1396,8 +1394,7 @@ Et cela donne un dessin qu'on lit comme un dessin, dans le source même du progr
 ```
 
 Ces huit lignes sont le haut d'une petite créature ronde : les cinq premières dessinent un
-crâne qui s'élargit, puis deux trous de trois `0` creusés dans les `1`, un de chaque côté
-— les yeux. Le corps et une large bouche ouverte suivent la même logique, vous les lirez
+crâne qui s'élargit, puis deux trous de `0` creusés dans les `1`, un de chaque côté — les yeux : trois `0` de large à gauche, trois ou quatre à droite selon la rangée, car le dessin n'est pas tout à fait symétrique. Le corps et une large bouche ouverte suivent la même logique, vous les lirez
 dans le listing. Prenez du papier quadrillé, 24 cases sur 21, noircissez ce que vous
 voulez, recopiez ligne par ligne : c'est tout le métier, celui des jeux que vous avez
 aimés y compris.
@@ -1517,7 +1514,7 @@ dessin
 
 ![Une créature jaune de 24x21 pixels, immobile au centre de l'écran, par-dessus le texte du BASIC — capture réelle](livre-pas-a-pas/ch06/unsprite-hw.png)
 
-Quinze instructions, et une créature jaune se tient au milieu de l'écran. Le `rts` a rendu
+Quinze lignes, et une créature jaune se tient au milieu de l'écran. Le `rts` a rendu
 la main au BASIC : le `READY.` est revenu, le curseur clignote, la machine est à vous — et
 la créature est toujours là. Faites l'essai qui compte : **tapez**. Le texte passe
 **derrière** elle, glisse sous elle, disparaît en haut ; elle ne bouge pas, ne s'efface
@@ -1709,8 +1706,7 @@ motif se répète à l'identique à chaque ligne, et tout ce qui n'aura pas ses 
 complets le décalera. C'est notre détecteur de vol.
 
 Un dernier réglage, cosmétique celui-là : nos huit créatures passent **en noir**. Ce n'est
-pas une panne — c'est le seul moyen de les distinguer encore. Le fond, désormais, change de
-couleur toutes les six microsecondes et parcourt les seize teintes de la palette ; n'importe
+pas une panne — c'est le seul moyen de les distinguer encore. Le fond, désormais, change de couleur à chaque tour de boucle — environ toutes les vingt et une microsecondes — et parcourt les seize teintes de la palette ; n'importe
 quelle couleur de sprite s'y noierait par moments. Le noir, lui, tranche sur les quinze
 autres. Vous verrez donc huit silhouettes, et c'est voulu.
 
@@ -1952,7 +1948,7 @@ pour commencer à la détourner. Et la première question à lui poser est celle
 savons faire apparaître un caractère en écrivant dans un casier. Peut-on faire tomber
 l'écran **tout entier** sans déplacer un seul octet ?
 
-La réponse est oui, elle tient en une boucle de six instructions, et elle repose entièrement
+La réponse est oui, elle tient en une boucle de six lignes, et elle repose entièrement
 sur la Bad Line du chapitre 4.
 
 ## Le signet du VIC
@@ -1997,8 +1993,7 @@ cran ?
 Le réflexe serait d'écrire un cran différent de la ligne courante — disons `(ligne + 1) & 7`.
 C'est faux, et c'est une erreur instructive. Réfléchissez à ce qui se passe pendant que la
 ligne *i* est en cours : notre boucle y écrit le cran `(i+1) & 7`. Puis la ligne *i+1*
-commence — et le test de la Bad Line, lui, a lieu **au tout début de la ligne**, avant que
-notre boucle ait eu le temps de tourner à nouveau. La valeur encore en place est
+commence — et le test de la Bad Line, lui, est refait à chaque cycle ; or, dans les premiers cycles de la ligne, quand le VIC décide s'il réquisitionne le bus, notre boucle n'a pas eu le temps de tourner à nouveau. La valeur encore en place est
 `(i+1) & 7`, et le numéro de ligne est maintenant `i+1`. Égalité. Bad Line. Trucage raté.
 
 Il faut donc viser **deux lignes en avance** : écrire `(i+2) & 7` pendant la ligne *i*.
@@ -2394,8 +2389,7 @@ relit donc exactement les 40 mêmes cellules. Nous aurions des couleurs relues 2
 mais identiques ! La parade est brutale et élégante : nous ne changeons pas les données,
 nous changeons **l'endroit où le VIC va les chercher**. Souvenez-vous du chapitre 5 :
 `$d018` dit *où* est la matrice. Nous préparons donc **huit matrices** en mémoire, et nous
-en changeons à chaque ligne. Huit suffisent, parce que la ligne raster L lit la rangée L/8
-de la matrice numéro L mod 8 — les huit lignes d'une même rangée de cellules puisent dans
+en changeons à chaque ligne. Huit suffisent, parce que, si l'on compte les lignes à partir de la première Bad Line (la ligne raster 48), la ligne n° N lit la rangée N/8 de la matrice numéro N mod 8 — les huit lignes d'une même rangée de cellules puisent dans
 huit matrices différentes.
 
 **Second obstacle : il y a un instant précis pour agir.** L'écriture qui crée la Bad Line ne
@@ -2684,8 +2678,7 @@ sur quoi ai-je bien pu exécuter les programmes dont vous avez vu les captures ?
 Nous voici au bout du voyage, et il reste une question que vous vous êtes peut-être posée
 dès la première page : **où trouve-t-on, en 2026, un Commodore 64 pour vérifier tout ça ?**
 
-Vous avez lu la même légende sous chaque image de ce livre : *capture réelle sur Ultimate
-64*. C'était la promesse du chapitre 0 — toutes les images d'écran sont vraies, chacune
+Vous avez lu la même mention sous la plupart des images de ce livre : *capture réelle sur C64 Ultimate*. C'était la promesse de la première page — toutes les images d'écran sont vraies, chacune
 produite par le listing imprimé juste au-dessus. Le moment est venu de dire ce qu'est cette
 machine, et surtout pourquoi elle ne triche pas.
 
@@ -2705,11 +2698,9 @@ moitiés de microseconde, le signal levé quand l'artiste réquisitionne le bus.
 mêmes contraintes — et, ce qui est le plus révélateur, **mêmes bizarreries**.
 
 Car c'est ainsi qu'on démasque une imitation approximative : par les défauts. Le bug du FLI
-du chapitre précédent — ces vingt-quatre pixels de gauche perdus, dont la documentation de
-référence dit qu'« il n'y a aucun moyen de les récupérer » — est là, intact, mesuré sur
+du chapitre précédent — ces vingt-quatre pixels de gauche perdus, dont la documentation de référence dit qu'il n'y a « pas de contournement » — est là, intact, mesuré sur
 cette machine. Mieux encore : il existe un décalage d'affichage si fin, si intime au
-fonctionnement interne du VIC, qu'il varie sur les vraies puces d'une révision de silicium
-à l'autre, et même avec la température. Sur ce circuit programmable, il est **déterministe**
+fonctionnement interne du VIC, que ce genre de comportement est réputé varier, sur les vraies puces, d'une révision de silicium à l'autre, et même avec la température. Sur ce circuit programmable, il est **déterministe**
 — toujours le même, mesurable une fois pour toutes. Une machine qui se contenterait d'imiter
 « en gros » n'aurait ni ce bug, ni ce décalage. Celle-ci les a.
 
@@ -2723,8 +2714,7 @@ machine : re-vérifiez.
 Cette machine sait faire une chose qu'un Commodore 64 de 1982 ne savait pas : **accélérer
 son processeur**. Un réglage de menu, « CPU Speed », vaut 1 MHz par défaut ; il monte jusqu'à
 **48 MHz** sur un Ultimate 64 et **64 MHz** sur un Elite-II. Sur le C64 Ultimate de ce livre,
-la mesure est faite : l'index de vitesse le plus élevé, écrit dans le casier `$d031` — un
-seul octet, quatre bits utiles — donne **64 MHz constants** (à condition qu'un réglage du
+la mesure est faite : l'index de vitesse le plus élevé, écrit dans le casier `$d031` — un seul octet, dont quatre bits pour l'index de vitesse — donne **64 MHz constants** (à condition qu'un réglage du
 menu autorise le programme à y toucher). Écrire dans ce casier est d'ailleurs sans effet sur
 un vrai C64 : c'est un registre VIC inutilisé. Le même programme peut donc demander poliment
 le turbo sur les deux machines.
@@ -2752,8 +2742,7 @@ qui *force* des Bad Lines paie donc ce prix plein, quelle que soit la vitesse af
 menu.
 
 Faites le compte pour le FLI du chapitre 9, et savourez : environ 200 Bad Lines forcées, à
-43 microsecondes chacune, cela fait **8,6 millisecondes gelées sur une trame de 20**. Le
-débit utile du processeur est à peu près **divisé par deux** — au turbo comme à 1 MHz. Le
+43 microsecondes chacune, cela fait **8,6 millisecondes gelées sur une trame de 20**. Le processeur perd **près de la moitié** de son temps — au turbo comme à 1 MHz. Le
 titre de ce livre ne s'est jamais démenti : tout se joue toujours dans les mêmes vingt
 millisecondes, et il faut toujours ranger ses calculs dans les bordures.
 
@@ -2845,7 +2834,7 @@ fois par seconde, et personne pour vous dire quoi en faire.
 
 ---
 
-# Annexe — quatre pages à garder sous la main
+# Annexe — trois pages à garder sous la main
 
 Ce livre a fait le choix de n'expliquer chaque chose qu'au moment où elle sert. C'est bon
 pour apprendre, moins pratique pour programmer : au bout de trois chapitres, on cherche « le
@@ -2972,7 +2961,7 @@ d'écran dure 63 cycles.
 | `cmp #$80` | comparer A à une valeur | 2 |
 | `and #%11110111` | éteindre des bits de A | 2 |
 | `ora #%00001000` | allumer des bits de A | 2 |
-| `bne boucle` | sauter si la comparaison n'était pas une égalité | 2 si on ne saute pas, 3 si on saute |
+| `bne boucle` | sauter si le dernier résultat n'était pas zéro (après `cmp` : pas égal) | 2 si on ne saute pas, 3 si on saute (4 si la cible est sur une autre page) |
 | `jmp boucle` | sauter | 3 |
 | `sei` | fermer la porte aux interruptions | 2 |
 | `rts` | rendre la main à qui nous a appelés | 6 |
@@ -2989,7 +2978,7 @@ de tiroir dans le générateur de caractères (chapitre 5).
 | Code | Caractère | | Code | Caractère |
 |---|---|---|---|---|
 | 1 à 26 | les lettres A à Z, dans l'ordre | | 32 | espace |
-| 48 à 57 | les chiffres 0 à 9 | | 81 | un disque plein (le « cœur » des vieux listings) |
+| 48 à 57 | les chiffres 0 à 9 | | 81 | un disque plein (le « cœur » des vieux listings est le code 83) |
 
 Ajoutez 128 à n'importe lequel de ces codes pour l'obtenir en vidéo inversée.
 
