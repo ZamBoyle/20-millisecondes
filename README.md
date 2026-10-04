@@ -48,28 +48,15 @@ Le livre s'impose deux autres contraintes, qui font sa forme :
 ```
 20-millisecondes/
 │
-├── 20-MILLISECONDES.md        LE LIVRE — source unique de vérité (~3 100 lignes)
-├── 20-MILLISECONDES.pdf       son rendu, fabriqué par tools/build_pdf.sh
+├── 20-MILLISECONDES.md        LE LIVRE — source unique (~3 100 lignes)
+├── 20-MILLISECONDES.pdf       son rendu (66 pages)
+├── 20-MILLISECONDS.md         l'édition anglaise (traduction)
+├── 20-MILLISECONDS.pdf        son rendu (66 pages)
 ├── README.md                  ce fichier
-├── CLAUDE.md                  l'onboarding complet : objectif, règles, pièges, méthode
-├── PAS-A-PAS-PLAN.md          le plan d'origine et les choix actés (titre, ACME, périmètre)
+├── LICENSE.md                 les licences
 │
 ├── livre-pas-a-pas/           UN DOSSIER PAR CHAPITRE
-│   ├── CAHIER-DES-CHARGES.md  le contrat imposé aux rédacteurs (rituel, budget, interdits)
-│   ├── REPRODUCTIBILITE.md    le journal des essais sur matériel (19/19)
-│   ├── ch00/ … ch10/          pour chacun : chapitre.md, les sources .a, les captures -hw.png
-│   └── annexe/                les trois pages de référence de fin de volume
-│
-├── tools/
-│   ├── build_pdf.sh           markdown → LaTeX → PDF
-│   ├── header.tex             toute la mise en forme (cadres de code, encadrés, en-têtes)
-│   ├── titlepage.tex          la page de titre
-│   ├── widths.lua             filtre pandoc : largeur des colonnes des tableaux
-│   ├── shoot.sh               assembler → lancer sur le C64 Ultimate → capturer l'écran
-│   ├── send.sh                envoi d'un .prg par l'API REST de la machine
-│   ├── capture_stream.py      capture du vrai signal vidéo (flux UDP du VIC)
-│   ├── scrub.a                salisseur de mémoire, pour prouver la reproductibilité
-│   └── verifie.py             les cinq contrôles mécaniques du livre
+│   └── ch00/ … ch09/          pour chacun : les sources .a et les captures -hw.png
 │
 └── reference/
     ├── AU-COEUR-DU-METAL.md            le volume de référence (version interne)
@@ -126,7 +113,7 @@ l'ordre, ils dessinent le chemin du livre — de trois instructions à la maîtr
 | | | |
 |---|---|---|
 | ![](livre-pas-a-pas/ch00/teaser-hw.png) **0 · la bande-annonce**<br><sub>Six instructions, une couleur par ligne. On ne la comprend pas encore : c'est la destination.</sub> | ![](livre-pas-a-pas/ch01/bordure-hw.png) **1 · bordure rouge**<br><sub>Le premier programme du lecteur. Trois instructions, et le `READY.` revient.</sub> | ![](livre-pas-a-pas/ch01/stroboscope-hw.png) **1 · le stroboscope**<br><sub>Changer de couleur le plus vite possible ne donne pas un clignotement, mais des rayures : le faisceau est plus lent que nous.</sub> |
-| ![](livre-pas-a-pas/ch02/bande-hw.png) **2 · la bande immobile**<br><sub>En guettant le faisceau. Le C64 ne connaît pas les rectangles, il connaît les instants.</sub> | ![](livre-pas-a-pas/ch03/degrade-hw.png) **3 · une couleur par ligne**<br><sub>Une table calculée d'avance, lue à l'index de la ligne courante. Le motif signature du livre.</sub> | ![](livre-pas-a-pas/ch04/badline-hw.png) **4 · la Bad Line, à l'œil nu**<br><sub>Une ligne sur huit, le processeur est gelé : 0,29 changement de couleur contre 4 à 5 ailleurs.</sub> |
+| ![](livre-pas-a-pas/ch02/bande-hw.png) **2 · la bande immobile**<br><sub>En guettant le faisceau. Le C64 ne connaît pas les rectangles, il connaît les instants.</sub> | ![](livre-pas-a-pas/ch03/degrade-hw.png) **3 · une couleur par ligne**<br><sub>Une table calculée d'avance, lue à l'index de la ligne courante. Le motif signature du livre.</sub> | ![](livre-pas-a-pas/ch04/badline-hw.png) **4 · la Bad Line, à l'œil nu**<br><sub>Une ligne sur huit, le processeur est gelé : cette ligne-là reste d'une seule couleur.</sub> |
 | ![](livre-pas-a-pas/ch04/eteint-hw.png) **4 · la contre-épreuve**<br><sub>Écran éteint : plus rien à lire, plus aucun vol. Six frontières par ligne, dérive nulle.</sub> | ![](livre-pas-a-pas/ch04/patience-hw.png) **4 · l'escalier prédit**<br><sub>Une attente calibrée, et 63 mod 20 = 3 cycles : le décalage mesuré vaut −24 pixels par ligne.</sub> | ![](livre-pas-a-pas/ch04/chrono-hw.png) **4 · le chronomètre en bordure**<br><sub>La première version : chaque strie marque neuf cycles écoulés.</sub> |
 | ![](livre-pas-a-pas/ch05/matrice-hw.png) **5 · écrire dans l'écran**<br><sub>Mille casiers, un octet par caractère. Sans `PRINT`, sans le système.</sub> | ![](livre-pas-a-pas/ch05/demenage-hw.png) **5 · l'écran déménage**<br><sub>Une seconde matrice bâtie en secret, puis une seule écriture : l'écran n'est qu'une adresse.</sub> | ![](livre-pas-a-pas/ch06/unsprite-hw.png) **6 · une créature**<br><sub>24 × 21 pixels dessinés avec des 0 et des 1, posés au pixel près par-dessus le texte.</sub> |
 | ![](livre-pas-a-pas/ch06/huit-hw.png) **6 · les huit en rang**<br><sub>Un seul dessin en mémoire, huit exemplaires à l'écran, huit couleurs.</sub> | ![](livre-pas-a-pas/ch06/voleurs-hw.png) **6 · les huit voleurs**<br><sub>Les mêmes, posés en travers du chronomètre : on voit les cycles qu'ils prennent.</sub> | ![](livre-pas-a-pas/ch07/chute-hw.png) **7 · l'écran tombe**<br><sub>En empêchant la Bad Line, le VIC ne lit plus rien : tout descend de quarante lignes.</sub> |
@@ -182,24 +169,19 @@ Le dossier [`reference/`](reference/) contient les deux volumes, leur chaîne La
 
 ---
 
-## Fabriquer, exécuter, vérifier
+## Assembler et exécuter un programme
 
 ```bash
-./tools/build_pdf.sh                            # markdown → LaTeX → PDF
-./tools/build_pdf.sh --tex                      # ... en gardant le LaTeX intermédiaire
-./tools/shoot.sh livre-pas-a-pas/ch04/badline.a # assembler, lancer sur le C64 Ultimate,
-                                                #   et capturer ce qu'il affiche vraiment
-python3 tools/verifie.py                        # les cinq contrôles mécaniques
+cd livre-pas-a-pas/ch04 && acme badline.a      # produit badline.prg
 ```
 
-**Prérequis** : [ACME](https://sourceforge.net/projects/acme-crossass/) 0.95 ou plus récent,
-`pandoc` + `xelatex`, `python3` avec Pillow. Pour les captures : un C64 Ultimate joignable sur
-le réseau (variable `C64U_IP`).
+Le `.prg` se lance sur un C64 Ultimate ou une vraie machine (`LOAD"BADLINE",8,1` puis `RUN`),
+ou dans l'émulateur VICE (`x64sc`) : glissez le fichier sur la fenêtre.
+
+**Prérequis** : [ACME](https://sourceforge.net/projects/acme-crossass/) 0.95 ou plus récent.
 
 Chaque chapitre a son dossier dans [`livre-pas-a-pas/`](livre-pas-a-pas/) : les sources
-assembleur, les captures, et de quoi tout rejouer. Le protocole de l'essai de reproductibilité
-— salir toute la mémoire, puis vérifier que chaque programme tient encore sa promesse — est
-consigné dans [REPRODUCTIBILITE.md](livre-pas-a-pas/REPRODUCTIBILITE.md).
+assembleur et les captures d'écran.
 
 ---
 
@@ -212,8 +194,9 @@ lecteur jouant le **dactylo**, qui ne possède que le livre imprimé et tape ce 
 
 Chacun a trouvé ce que les autres ne pouvaient pas voir : un sprite pointant vers un dessin
 jamais écrit, deux chapitres qui se contredisaient, un bloc de code jamais refermé. Le
-détail de ces passes, et les corrections qui en sont sorties, est dans
-[CLAUDE.md](CLAUDE.md) — c'est aussi le document à lire pour reprendre le travail.
+livre a ensuite été relu de bout en bout par plusieurs intelligences artificielles indépendantes,
+et chaque affirmation chiffrée contestée a été re-vérifiée contre les sources ou mesurée sur la
+machine.
 
 ---
 
@@ -223,7 +206,7 @@ Le livre — texte, PDF et **toutes les captures d'écran** — est sous
 **[Creative Commons BY-SA 4.0](LICENSE.md)** : partagez-le, adaptez-le, même
 commercialement, à condition de citer la source et de partager aux mêmes conditions.
 
-Les **programmes et les outils** sont sous **licence MIT**, volontairement plus permissive :
+Les **programmes** sont sous **licence MIT**, volontairement plus permissive :
 un lecteur doit pouvoir reprendre un listing du livre dans son propre code sans que cela
 l'engage à quoi que ce soit.
 
